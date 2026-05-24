@@ -1736,7 +1736,12 @@ if (window.visualViewport) {
   });
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// Service worker disabilitato per aggiornamenti immediati
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  });
+}
 </script>
 </body>
 </html>
