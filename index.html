@@ -1708,10 +1708,18 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   }, { passive: false });
 });
 
-// Service worker con strategia network-first per aggiornamenti automatici
+// Auto-aggiornamento: ricarica quando c'è una nuova versione
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
-    reg.update(); // controlla aggiornamenti ad ogni apertura
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'activated') {
+          window.location.reload();
+        }
+      });
+    });
+    reg.update();
   }).catch(() => {});
 }
 </script>
