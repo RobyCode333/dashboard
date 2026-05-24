@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-v1';
+const CACHE_NAME = 'dashboard-v2';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -12,7 +12,6 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Network first — sempre prova la rete, cache solo se offline
 self.addEventListener('fetch', e => {
   e.respondWith(
     fetch(e.request)

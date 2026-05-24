@@ -2,7 +2,7 @@
   "name": "La Mia Dashboard",
   "short_name": "Dashboard",
   "description": "App personale per task, spese, palestra e dieta",
-  "start_url": "/",
+  "start_url": "/dashboard/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",

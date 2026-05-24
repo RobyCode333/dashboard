@@ -1711,7 +1711,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 // Auto-aggiornamento: ricarica quando c'è una nuova versione
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
+  navigator.serviceWorker.register('/dashboard/sw.js', { scope: '/dashboard/' }).then(reg => {
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
