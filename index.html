@@ -513,19 +513,19 @@ select option { background: var(--bg3); }
   <div class="section-title">Nuovo task</div>
   <div class="input-row">
     <input type="text" id="task-input" placeholder="Cosa devi fare?" maxlength="120">
-  </div>
-  <div class="input-row">
-    <select id="task-prio" style="flex:0.6">
+    <select id="task-prio" style="flex:0.5">
       <option value="alta">🔴</option>
       <option value="media" selected>🟡</option>
     </select>
-    <select id="task-tipo" style="flex:1.2">
-      <option value="universita">🎓 Università</option>
+    <select id="task-tipo" style="flex:1">
+      <option value="universita">🎓 Uni</option>
       <option value="trading">📈 Trading</option>
       <option value="altro">📦 Altro</option>
     </select>
+  </div>
+  <div class="input-row">
     <input type="number" id="task-giorno" placeholder="Giorno" min="1" max="31" style="flex:0.8">
-    <select id="task-mese" style="flex:1.2;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 8px;outline:none">
+    <select id="task-mese" style="flex:1.4;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 8px;outline:none">
       <option value="0">Gen</option>
       <option value="1">Feb</option>
       <option value="2">Mar</option>
@@ -539,7 +539,7 @@ select option { background: var(--bg3); }
       <option value="10">Nov</option>
       <option value="11">Dic</option>
     </select>
-    <button class="btn" onclick="addTask()" style="flex:0.5">+</button>
+    <button class="btn" onclick="addTask()">+</button>
   </div>
   <div id="task-filter-chips" style="display:flex;gap:5px;margin-bottom:8px">
     <div class="chip active" onclick="filterTasks('tutti',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">Tutti</div>
