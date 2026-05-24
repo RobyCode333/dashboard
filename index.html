@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<title>La Mia Dashboard</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --bg4: #22222f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0f0f8;
+  --text2: #9090a8;
+  --text3: #5a5a72;
+  --accent: #7c6fff;
+  --accent2: #a594ff;
+  --green: #3ecf8e;
+  --green-bg: rgba(62,207,142,0.1);
+  --red: #f46060;
+  --red-bg: rgba(244,96,96,0.1);
+  --amber: #f5a623;
+  --amber-bg: rgba(245,166,35,0.1);
+  --blue: #4fa8ff;
+  --blue-bg: rgba(79,168,255,0.1);
+  --pink: #ff6eb4;
+  --pink-bg: rgba(255,110,180,0.1);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --font: 'Poppins', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+input, textarea, select { -webkit-user-select: text; user-select: text; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+/* NAV */
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding-top: 10px;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+  z-index: 100;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+.nav-emoji {
+  font-size: 26px;
+  line-height: 1;
+  filter: grayscale(1) brightness(0.4);
+}
+
+.nav-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent2);
+  margin-top: 5px;
+  opacity: 0;
+}
+
+
+
+/* HEADER */
+.header {
+  padding: 60px 20px 16px;
+  padding-top: max(60px, calc(env(safe-area-inset-top) + 20px));
+  text-align: center;
+}
+
+.header-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.header-title span { color: var(--accent2); }
+
+/* PAGE TITLE BAR (tutte le sezioni tranne home) */
+.page-title-bar {
+  text-align: center;
+  padding: max(52px, calc(env(safe-area-inset-top) + 14px)) 20px 18px;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: 0.08em;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 6px;
+  text-decoration-thickness: 3px;
+}
+
+.page-title-bar span { color: var(--accent2); }
+
+/* PAGES */
+.page { display: none; animation: fadeUp 0.22s ease; position: fixed; inset: 0; bottom: calc(60px + env(safe-area-inset-bottom)); overflow: hidden; }
+.page.active { display: flex; flex-direction: column; }
+.page-inner { padding-top: 0; }
+
+/* Fixed top section (title, forms, stats) */
+.page-header {
+  flex-shrink: 0;
+  padding: 0 16px;
+  overflow: hidden;
+}
+
+/* Scrollable list section */
+.page-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 16px;
+  overscroll-behavior: contain;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeDown {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+.nota-editor.closing { animation: fadeDown 0.2s ease forwards; }
+
+/* SECTION TITLE */
+.section-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin: 24px 0 12px;
+  position: relative;
+  padding-left: 10px;
+}
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+/* INPUT ROW */
+.input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.input-row input, .input-row select, .modal input, .modal textarea, .modal select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+.input-row input { flex: 1; }
+.input-row select { flex: 1; }
+.modal input, .modal select { width: 100%; margin-bottom: 10px; }
+.modal textarea { width: 100%; margin-bottom: 10px; min-height: 70px; resize: vertical; }
+
+.input-row input:focus, .input-row select:focus,
+.modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+.input-row input::placeholder, .modal input::placeholder, .modal textarea::placeholder { color: var(--text3); }
+
+select option { background: var(--bg3); }
+
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { opacity: 0.8; transform: scale(0.97); }
+
+.btn-sm {
+  background: var(--bg4);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-danger { background: var(--red-bg); color: var(--red); border-color: rgba(244,96,96,0.2); }
+.btn-ghost { background: var(--bg4); color: var(--text2); border: 1px solid var(--border); }
+
+/* TASK */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+
+.task-item.done { opacity: 0.45; }
+.task-item.done .task-text { text-decoration: line-through; color: var(--text3); }
+
+.task-check {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border2);
+  background: var(--bg3);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 2px;
+}
+.task-check.checked { background: var(--green); border-color: var(--green); }
+.task-check.checked::after { content: '✓'; color: #0a0a0f; font-size: 12px; font-weight: 700; }
+
+.task-body { flex: 1; min-width: 0; }
+.task-text { font-size: 14px; font-weight: 500; line-height: 1.35; }
+.task-meta { font-size: 11px; color: var(--text3); margin-top: 3px; font-weight: 500; }
+.task-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.priority-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.prio-alta { background: var(--red-bg); color: var(--red); }
+.prio-media { background: var(--amber-bg); color: var(--amber); }
+
+.tipo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 5px;
+}
+.tipo-universita { background: rgba(79,168,255,0.13); color: #4fa8ff; }
+.tipo-trading { background: rgba(62,207,142,0.13); color: #3ecf8e; }
+.tipo-altro { background: rgba(255,255,255,0.07); color: var(--text3); }
+
+/* SPESE */
+.spesa-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+
+.spesa-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.spesa-body { flex: 1; min-width: 0; }
+.spesa-desc { font-size: 14px; font-weight: 600; }
+.spesa-cat { font-size: 11px; color: var(--text3); font-weight: 500; }
+.spesa-amount { font-size: 15px; font-weight: 700; color: var(--red); }
+.spesa-amount.entrata { color: var(--green); }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.stat-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; line-height: 1.1; }
+
+/* NOTE EDITOR */
+.nota-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; }
+.nota-editor.open { display: flex; animation: fadeUp 0.22s ease; }
+.nota-editor.closing { display: flex; animation: fadeDown 0.2s ease forwards; pointer-events: none; }
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  padding-top: max(16px, calc(env(safe-area-inset-top) + 16px));
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-back {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.editor-body {
+  flex: 1;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.8;
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  resize: none;
+  outline: none;
+}
+.editor-body::placeholder { color: var(--text3); }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 150;
+  align-items: flex-end;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid var(--border);
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  width: 100%;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+.modal-btns .btn { flex: 1; padding: 12px; font-size: 14px; }
+
+/* CHIPS */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.chip {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text3);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px 20px; color: var(--text3); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; font-weight: 500; line-height: 1.6; }
+
+::-webkit-scrollbar { display: none; }
+
+* { scrollbar-width: none; -ms-overflow-style: none; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+<div class="page-header">
+  <div class="header">
+    <div class="header-title">La mia <span>Dashboard</span></div>
+  </div>
+  <div class="section-title" id="home-date-title">Riepilogo di oggi</div>
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">Task attivi</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+        <div class="stat-value" id="home-tasks" style="color:var(--accent2)">0</div>
+        <div id="home-tasks-arretrati" style="font-size:10px;font-weight:600;line-height:1"></div>
+      </div>
+    </div>
+    <div class="stat-card"><div class="stat-label">Da pagare</div><div class="stat-value" id="home-spese" style="color:var(--red)">€0</div></div>
+    <div class="stat-card"><div class="stat-label">Palestra</div><div class="stat-value" id="home-palestra" style="color:var(--blue)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Kg rimanenti</div><div class="stat-value" id="home-kg" style="color:var(--green)">—</div></div>
+  </div>
+  <div class="section-title">Task urgenti</div>
+</div>
+<div class="page-list">
+  <div id="home-tasks-list"></div>
+  <div style="display:flex;justify-content:flex-end;padding:40px 0 8px">
+    <button onclick="openNote()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;padding:7px 16px;display:flex;align-items:center;gap:6px">
+      📝 <span>Note</span>
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="nota-editor" id="note-editor">
+  <div class="editor-header" style="justify-content:center;position:relative">
+    <button class="editor-back" onclick="closeNote()" style="position:absolute;left:16px">← Chiudi</button>
+    <div style="font-family:var(--font);font-size:18px;font-weight:800;color:var(--text);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:6px;text-decoration-thickness:2px;letter-spacing:0.04em">Note</div>
+  </div>
+  <textarea class="editor-body" id="note-body" placeholder="Scrivi qui le cose da ricordare..."></textarea>
+</div>
+
+<!-- TASK -->
+<div class="page" id="page-task">
+<div class="page-header">
+  <div class="page-title-bar">TASK</div>
+  <div class="section-title">Nuovo task</div>
+  <div class="input-row">
+    <input type="text" id="task-input" placeholder="Cosa devi fare?" maxlength="120">
+  </div>
+  <div class="input-row">
+    <select id="task-prio" style="flex:0.6">
+      <option value="alta">🔴</option>
+      <option value="media" selected>🟡</option>
+    </select>
+    <select id="task-tipo" style="flex:1.2">
+      <option value="universita">🎓 Università</option>
+      <option value="trading">📈 Trading</option>
+      <option value="altro">📦 Altro</option>
+    </select>
+    <input type="number" id="task-giorno" placeholder="Giorno" min="1" max="31" style="flex:0.8">
+    <select id="task-mese" style="flex:1.2;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 8px;outline:none">
+      <option value="0">Gen</option>
+      <option value="1">Feb</option>
+      <option value="2">Mar</option>
+      <option value="3">Apr</option>
+      <option value="4">Mag</option>
+      <option value="5">Giu</option>
+      <option value="6">Lug</option>
+      <option value="7">Ago</option>
+      <option value="8">Set</option>
+      <option value="9">Ott</option>
+      <option value="10">Nov</option>
+      <option value="11">Dic</option>
+    </select>
+    <button class="btn" onclick="addTask()" style="flex:0.5">+</button>
+  </div>
+  <div id="task-filter-chips" style="display:flex;gap:5px;margin-bottom:8px">
+    <div class="chip active" onclick="filterTasks('tutti',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">Tutti</div>
+    <div class="chip" onclick="filterTasks('alta',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">🔴 Alta</div>
+    <div class="chip" onclick="filterTasks('media',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">🟡 Normale</div>
+    <div class="chip" onclick="filterTasks('done',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">Completati</div>
+  </div>
+</div>
+<div class="page-list">
+  <div id="task-list"></div>
+</div>
+</div>
+
+<!-- SPESE -->
+<div class="page" id="page-spese">
+<div class="page-header">
+  <div class="page-title-bar">CONTI</div>
+  <div class="stat-row" style="margin-top:4px">
+    <div class="stat-card"><div class="stat-label">Uscite fisse</div><div class="stat-value" id="tot-uscite" style="color:var(--red)">€0</div></div>
+    <div class="stat-card"><div class="stat-label">Entrate</div><div class="stat-value" id="tot-entrate" style="color:var(--green)">€0</div></div>
+  </div>
+  <div class="section-title">Aggiungi</div>
+  <div class="input-row">
+    <input type="text" id="spesa-desc" placeholder="Descrizione" style="flex:2">
+    <input type="number" id="spesa-amount" placeholder="€" step="0.01" min="0" style="flex:1">
+  </div>
+  <div class="input-row">
+    <select id="spesa-tipo">
+      <option value="uscita_fissa">↑ Uscita fissa</option>
+      <option value="entrata">↓ Entrata</option>
+    </select>
+    <input type="number" id="spesa-giorno" placeholder="Giorno (es. 15)" min="1" max="31" style="flex:1">
+    <button class="btn" onclick="addSpesa()">+</button>
+  </div>
+  <div class="chips" id="spese-filter-chips">
+    <div class="chip active" onclick="filterSpese('entrata',this)">Entrate</div>
+    <div class="chip" onclick="filterSpese('uscita_fissa',this)">Uscite fisse</div>
+  </div>
+</div>
+<div class="page-list">
+  <div id="spese-list"></div>
+</div>
+</div>
+
+<!-- PALESTRA -->
+<div class="page" id="page-palestra">
+<div class="page-header">
+  <div class="page-title-bar">PALESTRA</div>
+  <div class="section-title">Programmi</div>
+  <div class="input-row">
+    <select id="pal-prog-select" onchange="cambiaProgramma(this.value)" style="flex:1">
+      <option value="">— Nessun programma —</option>
+    </select>
+    <button class="btn-sm btn-danger" id="pal-delete-prog-btn" onclick="deleteProgramma()" style="display:none">✕</button>
+  </div>
+  <div class="input-row">
+    <input type="text" id="pal-nuovo-prog" placeholder="Nuovo programma..." maxlength="60">
+    <button class="btn" onclick="addProgramma()">+</button>
+  </div>
+  <div id="pal-prog-header" style="display:none;justify-content:space-between;align-items:center;margin-top:4px">
+    <div class="section-title" style="margin:0">Sedute</div>
+    <button class="btn-sm" onclick="openSedutaModal()">+ Seduta</button>
+  </div>
+</div>
+<div class="page-list">
+  <div id="pal-sedute-list" style="margin-top:4px"></div>
+  <div id="pal-empty" class="empty" style="padding-top:36px">
+    <div class="empty-icon">💪</div>
+    <div class="empty-text">Nessun programma ancora.<br>Creane uno qui sopra!</div>
+  </div>
+</div>
+</div>
+
+<!-- DIETA -->
+<div class="page" id="page-dieta">
+<div class="page-header">
+  <div class="page-title-bar">DIETA</div>
+  <div class="section-title">Peso corporeo</div>
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-label">Peso attuale</div>
+      <div class="stat-value" id="dieta-peso-attuale" style="color:var(--accent2)">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Obiettivo</div>
+      <div class="stat-value" id="dieta-peso-obiettivo" style="color:var(--green)">—</div>
+    </div>
+  </div>
+  <div class="input-row">
+    <input type="number" id="dieta-peso-input" placeholder="Peso (kg)" step="0.1" min="0" style="flex:2">
+    <button class="btn" onclick="addPeso()">+</button>
+  </div>
+  <div class="input-row">
+    <input type="number" id="dieta-peso-giorno" placeholder="Giorno" min="1" max="31" style="flex:1">
+    <select id="dieta-peso-mese" style="flex:1.4;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 10px;outline:none">
+      <option value="0">Gennaio</option>
+      <option value="1">Febbraio</option>
+      <option value="2">Marzo</option>
+      <option value="3">Aprile</option>
+      <option value="4">Maggio</option>
+      <option value="5">Giugno</option>
+      <option value="6">Luglio</option>
+      <option value="7">Agosto</option>
+      <option value="8">Settembre</option>
+      <option value="9">Ottobre</option>
+      <option value="10">Novembre</option>
+      <option value="11">Dicembre</option>
+    </select>
+    <input type="number" id="dieta-peso-anno" placeholder="Anno" min="2020" max="2099" style="flex:1.2">
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:4px">
+    <div class="section-title" style="margin:0">Storico pesi</div>
+    <button class="btn-sm" onclick="toggleGrafico()">📈 Grafico</button>
+  </div>
+</div>
+<div class="page-list">
+  <div id="dieta-grafico" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+    <canvas id="peso-chart" style="width:100%;height:180px"></canvas>
+  </div>
+  <div id="dieta-pesi-list"></div>
+  <div class="section-title">Dieta attiva</div>
+  <div class="input-row">
+    <input type="text" id="dieta-nome-input" placeholder="Nome dieta (es. Ipocalorica...)" maxlength="60" style="flex:2">
+    <button class="btn" onclick="addDieta()">+</button>
+  </div>
+  <div id="dieta-list"></div>
+</div>
+</div>
+
+<!-- MODAL OBIETTIVO PESO -->
+<div class="modal-overlay" id="peso-obiettivo-modal" onclick="closePesoObiettivoModal(event)">
+  <div class="modal">
+    <div class="modal-title">Imposta obiettivo</div>
+    <input type="number" id="peso-obiettivo-input" placeholder="Peso obiettivo (kg)" step="0.1" min="0">
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closePesoObiettivoModal()">Annulla</button>
+      <button class="btn" onclick="savePesoObiettivo()">Salva</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="seduta-modal" onclick="closeSedutaModal(event)">
+  <div class="modal">
+    <div class="modal-title">Nuova seduta</div>
+    <input type="text" id="seduta-nome" placeholder="Es. Seduta A, Push, Gambe...">
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeSedutaModal()">Annulla</button>
+      <button class="btn" onclick="saveSeduta()">Crea</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SEDUTA DETAIL (gruppi + esercizi) -->
+<div class="modal-overlay" id="seduta-detail-modal" onclick="closeSedutaDetailModal(event)">
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" id="seduta-detail-title" style="margin:0">Seduta</div>
+      <button onclick="closeSedutaDetailModal()" style="width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+    <div id="seduta-gruppi-list"></div>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="openGruppoModal()">+ Gruppo esercizi</button>
+  </div>
+</div>
+
+<!-- MODAL NUOVO GRUPPO -->
+<div class="modal-overlay" id="gruppo-modal" onclick="closeGruppoModal(event)">
+  <div class="modal">
+    <div class="modal-title">Nuovo gruppo</div>
+    <input type="text" id="gruppo-nome" placeholder="Es. Panca, Spalle, Tirate...">
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeGruppoModal()">Annulla</button>
+      <button class="btn" onclick="saveGruppo()">Crea</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ESERCIZI GRUPPO -->
+<div class="modal-overlay" id="esercizio-modal" onclick="closeEsercizioModal(event)">
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" id="esercizio-modal-title" style="margin:0">Esercizi</div>
+      <button onclick="closeEsercizioModal()" style="width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+
+    <!-- Rotazione -->
+    <div id="esercizio-rotazione" style="margin-bottom:16px"></div>
+
+    <!-- Lista esercizi -->
+    <div id="esercizio-list"></div>
+
+    <!-- Aggiungi -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:12px 0 8px">Aggiungi esercizio</div>
+    <input type="text" id="es-nome" placeholder="Nome esercizio" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 14px;outline:none;margin-bottom:8px;box-sizing:border-box">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="number" id="es-serie" placeholder="Serie" min="1" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 10px;outline:none">
+      <input type="number" id="es-rip" placeholder="Rip." min="1" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 10px;outline:none">
+      <input type="number" id="es-peso" placeholder="kg" min="0" step="0.5" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 10px;outline:none">
+    </div>
+    <button class="btn" style="width:100%" onclick="addEsercizio()">+ Aggiungi esercizio</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nav-btn active" data-page="home" id="nav-home">
+    <div class="nav-emoji">🏠</div><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" data-page="task" id="nav-task">
+    <div class="nav-emoji">✅</div><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" data-page="spese" id="nav-spese">
+    <div class="nav-emoji">💰</div><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" data-page="palestra" id="nav-palestra">
+    <div class="nav-emoji">💪</div><div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" data-page="dieta" id="nav-dieta">
+    <div class="nav-emoji">🍽️</div><div class="nav-dot"></div>
+  </button>
+</nav>
+
+<script>
+let state = { tasks: [], spese: [], palestra: { programmaAttivo: null, programmi: [] }, dieta: { pesi: [], pesoObiettivo: null, diete: [] }, nota: '' };
+let taskFilter = 'tutti';
+let speseFilter = 'entrata';
+
+
+function save() { try { localStorage.setItem('dashboard_data', JSON.stringify(state)); } catch(e){} }
+function load() {
+  try {
+    const d = localStorage.getItem('dashboard_data');
+    if (d) { const p = JSON.parse(d); state.tasks = p.tasks || []; state.spese = p.spese || []; state.palestra = p.palestra || { programmaAttivo: null, programmi: [] }; state.dieta = p.dieta || { pesi: [], pesoObiettivo: null, diete: [] }; state.nota = p.nota || ''; }
+  } catch(e){}
+}
+
+function checkAndResetSpunte() {
+  const now = new Date();
+  const currentKey = `${now.getFullYear()}-${now.getMonth()}`;
+  const lastKey = localStorage.getItem('last_reset_month');
+  if (lastKey !== currentKey) {
+    state.spese.forEach(s => { if (s.tipo === 'uscita_fissa') s.pagata = false; });
+    localStorage.setItem('last_reset_month', currentKey);
+    save();
+  }
+}
+
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (page === 'home') renderHome();
+  if (page === 'task') renderTasks();
+  if (page === 'spese') renderSpese();
+  if (page === 'palestra') renderPalestra();
+  if (page === 'dieta') renderDieta();
+}
+
+
+
+
+
+
+function renderHome() {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  document.getElementById('home-date-title').textContent = `Riepilogo di oggi, ${now.getDate()} ${mesi[now.getMonth()]} ${now.getFullYear()}`;
+  const oggi = now.getDate();
+  const meseCorrente = now.getMonth();
+  const taskOggi = state.tasks.filter(t => !t.done && t.giorno === oggi && (t.mese ?? meseCorrente) === meseCorrente).length;
+  const arretrati = state.tasks.filter(t => {
+    if (t.done) return false;
+    const tm = t.mese ?? meseCorrente;
+    if (tm < meseCorrente) return true;
+    if (tm === meseCorrente && t.giorno != null && t.giorno < oggi) return true;
+    return false;
+  }).length;
+
+  const daPagare = state.spese.filter(s => s.tipo === 'uscita_fissa' && !s.pagata).reduce((a, s) => a + s.amount, 0);
+
+  document.getElementById('home-tasks').textContent = taskOggi;
+  const arrEl = document.getElementById('home-tasks-arretrati');
+  if (arretrati > 0) {
+    arrEl.textContent = 'e ' + arretrati + ' arretrat' + (arretrati === 1 ? 'o' : 'i');
+    arrEl.style.color = 'var(--red)';
+  } else {
+    arrEl.textContent = 'nessun arretrato ✓';
+    arrEl.style.color = 'var(--green)';
+  }
+  document.getElementById('home-spese').textContent = '€' + daPagare.toFixed(2);
+  const progAttivo = state.palestra.programmi.find(p => p.id === state.palestra.programmaAttivo);
+  const palEl = document.getElementById('home-palestra');
+  palEl.textContent = progAttivo ? progAttivo.nome : '—';
+  palEl.style.color = 'var(--blue)';
+  palEl.style.fontSize = progAttivo && progAttivo.nome.length > 10 ? '13px' : '';
+
+  // Kg rimanenti
+  const kgEl = document.getElementById('home-kg');
+  const ultimoPeso = state.dieta.pesi.length ? state.dieta.pesi[state.dieta.pesi.length - 1] : null;
+  const pesoOb = state.dieta.pesoObiettivo;
+  if (ultimoPeso && pesoOb) {
+    const diff = Math.abs(ultimoPeso.valore - pesoOb).toFixed(1);
+    kgEl.textContent = diff;
+    kgEl.style.color = 'var(--green)';
+  } else {
+    kgEl.textContent = '—';
+    kgEl.style.color = 'var(--text3)';
+  }
+
+  const tl = document.getElementById('home-tasks-list');
+  const topTasks = state.tasks.filter(t => !t.done && t.priority === 'alta' && t.giorno === oggi && (t.mese ?? meseCorrente) === meseCorrente).slice(0, 3);
+  tl.innerHTML = topTasks.length ? topTasks.map(t => taskHTML(t, true)).join('') :
+    '<div class="empty" style="padding:24px 0"><div class="empty-text">Nessun task urgente</div></div>';
+}
+
+// TASKS
+function addTask() {
+  const txt = document.getElementById('task-input').value.trim();
+  if (!txt) return;
+  const giorno = parseInt(document.getElementById('task-giorno').value);
+  const mese = parseInt(document.getElementById('task-mese').value);
+  state.tasks.unshift({
+    id: Date.now(),
+    text: txt,
+    priority: document.getElementById('task-prio').value,
+    tipo: document.getElementById('task-tipo').value,
+    giorno: (!isNaN(giorno) && giorno >= 1 && giorno <= 31) ? giorno : null,
+    mese: (!isNaN(mese) && mese >= 0 && mese <= 11) ? mese : new Date().getMonth(),
+    done: false,
+    created: new Date().toISOString()
+  });
+  document.getElementById('task-input').value = '';
+  document.getElementById('task-giorno').value = '';
+  save(); haptic('medium'); renderTasks();
+}
+
+function toggleTask(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if (t) { t.done = !t.done; haptic(t.done ? 'success' : 'light'); save(); renderTasks(); renderHome(); }
+}
+
+function deleteTask(id) { state.tasks = state.tasks.filter(t => t.id !== id); save(); renderTasks(); renderHome(); }
+
+function filterTasks(f, el) {
+  taskFilter = f;
+  document.querySelectorAll('#task-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks();
+}
+
+function taskHTML(t, mini = false) {
+  const prioEmoji = { alta: '🔴', media: '🟡' }[t.priority] || '🟡';
+  const tipoEmoji = { universita: '🎓', trading: '📈', altro: '📦' }[t.tipo] || '📦';
+  const tipoLabel = { universita: 'Università', trading: 'Trading', altro: 'Altro' }[t.tipo] || 'Altro';
+  const tipoClass = { universita: 'tipo-universita', trading: 'tipo-trading', altro: 'tipo-altro' }[t.tipo] || 'tipo-altro';
+  const mesiNomi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  const meseTxt = t.mese != null ? mesiNomi[t.mese] : mesiNomi[new Date().getMonth()];
+  const giornoLabel = t.giorno ? `${t.giorno} ${meseTxt}` : '';
+  return `<div class="task-item ${t.done ? 'done' : ''}" style="align-items:center">
+    <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})" style="flex-shrink:0;align-self:center"></div>
+    <div class="task-body">
+      <div class="task-text" style="font-size:15px;font-weight:600">${t.text}</div>
+      <div class="task-meta" style="margin-top:3px">${prioEmoji}${giornoLabel ? '  ' + giornoLabel : ''}</div>
+    </div>
+    <span class="tipo-badge ${tipoClass}" style="flex-shrink:0;align-self:center;margin-left:8px">${tipoEmoji} ${tipoLabel}</span>
+    ${!mini ? `<div class="task-actions" style="flex-shrink:0"><button class="btn-sm btn-danger" onclick="deleteTask(${t.id})">✕</button></div>` : ''}
+  </div>`;
+}
+
+function renderTasks() {
+  const now = new Date();
+  const oggi = now.getDate();
+  const meseCorrente = now.getMonth();
+  // Set default mese select
+  const meseEl = document.getElementById('task-mese');
+  if (meseEl && !meseEl.dataset.set) { meseEl.value = meseCorrente; meseEl.dataset.set = '1'; }
+  let tasks = [...state.tasks];
+  if (taskFilter === 'done') tasks = tasks.filter(t => t.done);
+  else if (taskFilter === 'tutti') tasks = tasks.filter(t => !t.done);
+  else tasks = tasks.filter(t => t.priority === taskFilter && !t.done);
+
+  tasks.sort((a, b) => {
+    const ma = a.mese ?? meseCorrente, mb = b.mese ?? meseCorrente;
+    if (ma !== mb) return mb - ma;
+    return (b.giorno ?? 0) - (a.giorno ?? 0);
+  });
+
+  const el = document.getElementById('task-list');
+  if (!tasks.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Nessun task qui</div></div>';
+    return;
+  }
+
+  if (taskFilter === 'done') { el.innerHTML = tasks.map(t => taskHTML(t)).join(''); return; }
+
+  const isArretrato = t => {
+    const tm = t.mese ?? meseCorrente;
+    if (tm < meseCorrente) return true;
+    if (tm === meseCorrente && t.giorno != null && t.giorno < oggi) return true;
+    return false;
+  };
+
+  const odierni = tasks.filter(t => !isArretrato(t));
+  const arretrati = tasks.filter(t => isArretrato(t));
+
+  let html = odierni.map(t => taskHTML(t)).join('');
+  if (arretrati.length) {
+    html += `<div style="display:flex;align-items:center;gap:10px;margin:16px 0 10px">
+      <div style="flex:1;height:1px;background:var(--red-bg)"></div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--red);padding:0 4px">Task arretrati</div>
+      <div style="flex:1;height:1px;background:var(--red-bg)"></div>
+    </div>`;
+    html += arretrati.map(t => taskHTML(t)).join('');
+  }
+  el.innerHTML = html;
+}
+
+// SPESE
+function addSpesa() {
+  const desc = document.getElementById('spesa-desc').value.trim();
+  const amt = parseFloat(document.getElementById('spesa-amount').value);
+  const giorno = parseInt(document.getElementById('spesa-giorno').value);
+  if (!desc || isNaN(amt) || amt <= 0) return;
+  const tipo = document.getElementById('spesa-tipo').value;
+  const now = new Date();
+  state.spese.unshift({
+    id: Date.now(),
+    desc,
+    amount: amt,
+    tipo,
+    giorno: (!isNaN(giorno) && giorno >= 1 && giorno <= 31) ? giorno : null,
+    month: now.getMonth(),
+    year: now.getFullYear(),
+    date: now.toISOString()
+  });
+  document.getElementById('spesa-desc').value = '';
+  document.getElementById('spesa-amount').value = '';
+  document.getElementById('spesa-giorno').value = '';
+  save(); haptic('medium'); renderSpese(); renderHome();
+}
+
+function deleteSpesa(id) { state.spese = state.spese.filter(s => s.id !== id); save(); renderSpese(); renderHome(); }
+
+function filterSpese(f, el) {
+  speseFilter = f;
+  document.querySelectorAll('#spese-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderSpese();
+}
+
+function togglePagata(id) {
+  const s = state.spese.find(s => s.id === id);
+  if (s) { s.pagata = !s.pagata; haptic(s.pagata ? 'success' : 'light'); save(); renderSpese(); renderHome(); }
+}
+
+function renderSpese() {
+  const now = new Date();
+  const uscite = state.spese.filter(s => s.tipo === 'uscita_fissa').reduce((a, s) => a + s.amount, 0);
+  const entrate = state.spese.filter(s => s.tipo === 'entrata' && s.month === now.getMonth() && s.year === now.getFullYear()).reduce((a, s) => a + s.amount, 0);
+  document.getElementById('tot-uscite').textContent = '€' + uscite.toFixed(2);
+  document.getElementById('tot-entrate').textContent = '€' + entrate.toFixed(2);
+
+  let spese = [...state.spese];
+  if (speseFilter === 'entrata') {
+    spese = spese.filter(s => s.tipo === 'entrata' && s.month === now.getMonth() && s.year === now.getFullYear());
+  } else if (speseFilter === 'uscita_fissa') {
+    spese = spese.filter(s => s.tipo === 'uscita_fissa');
+  }
+
+  // Ordina per giorno desc (più recente in cima), null in fondo
+  spese.sort((a, b) => {
+    const ga = a.giorno ?? 0;
+    const gb = b.giorno ?? 0;
+    return gb - ga;
+  });
+
+  const el = document.getElementById('spese-list');
+  if (!spese.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">💸</div><div class="empty-text">Nessuna voce registrata</div></div>';
+    return;
+  }
+  el.innerHTML = spese.map(s => {
+    const isE = s.tipo === 'entrata';
+    const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    const meseCorrente = mesi[now.getMonth()];
+    const giornoLabel = s.giorno ? `${s.giorno} ${meseCorrente}` : (isE ? new Date(s.date).toLocaleDateString('it-IT', { month:'short', year:'numeric' }) : 'uscita fissa');
+    const isPagata = !!s.pagata;
+    return `<div class="spesa-item" style="${isPagata ? 'opacity:0.45' : ''}">
+      ${!isE ? `<div class="task-check ${isPagata ? 'checked' : ''}" onclick="togglePagata(${s.id})" style="flex-shrink:0;cursor:pointer"></div>` : `<div class="spesa-icon" style="background:var(--green-bg)">💰</div>`}
+      <div class="spesa-body">
+        <div class="spesa-desc" style="${isPagata ? 'text-decoration:line-through' : ''}">${s.desc}</div>
+        <div class="spesa-cat">${giornoLabel}${isPagata ? ' · pagata ✓' : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="spesa-amount ${isE ? 'entrata' : ''}">${isE ? '+' : '-'}€${s.amount.toFixed(2)}</div>
+        <button class="btn-sm btn-danger" onclick="deleteSpesa(${s.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// PALESTRA
+let palCtx = { progId: null, sedutaId: null, gruppoId: null };
+
+function getProg() { return state.palestra.programmi.find(p => p.id === palCtx.progId); }
+function getSeduta() { const p = getProg(); return p && p.sedute.find(s => s.id === palCtx.sedutaId); }
+function getGruppo() { const s = getSeduta(); return s && s.gruppi.find(g => g.id === palCtx.gruppoId); }
+
+function dateStr() {
+  const mesi = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  const n = new Date(); return `${n.getDate()} ${mesi[n.getMonth()]} ${n.getFullYear()}`;
+}
+
+function renderPalestra() {
+  const { programmi, programmaAttivo } = state.palestra;
+  const sel = document.getElementById('pal-prog-select');
+  sel.innerHTML = '<option value="">— Nessun programma —</option>' +
+    programmi.map(p => `<option value="${p.id}" ${p.id === programmaAttivo ? 'selected' : ''}>${p.nome}</option>`).join('');
+  const prog = programmi.find(p => p.id === programmaAttivo);
+  document.getElementById('pal-empty').style.display = prog ? 'none' : 'block';
+  const progHeader = document.getElementById('pal-prog-header');
+  if (progHeader) progHeader.style.display = prog ? 'flex' : 'none';
+  document.getElementById('pal-delete-prog-btn').style.display = prog ? 'inline-block' : 'none';
+  if (prog) renderSedute(prog);
+}
+
+function renderSedute(prog) {
+  const el = document.getElementById('pal-sedute-list');
+  if (!prog.sedute || !prog.sedute.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0">Nessuna seduta. Aggiungine una!</div>';
+    return;
+  }
+  el.innerHTML = prog.sedute.map(s => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:17px;font-weight:700;line-height:1">${s.nome}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm" onclick="openSedutaDetail(${prog.id},${s.id})">Apri</button>
+          <button class="btn-sm btn-danger" onclick="deleteSeduta(${prog.id},${s.id})">✕</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function addProgramma() {
+  const nome = document.getElementById('pal-nuovo-prog').value.trim();
+  if (!nome) return;
+  const id = Date.now();
+  state.palestra.programmi.push({ id, nome, sedute: [] });
+  if (!state.palestra.programmaAttivo) state.palestra.programmaAttivo = id;
+  document.getElementById('pal-nuovo-prog').value = '';
+  save(); renderPalestra(); renderHome();
+}
+
+function deleteProgramma() {
+  const id = state.palestra.programmaAttivo;
+  if (!id) return;
+  state.palestra.programmi = state.palestra.programmi.filter(p => p.id !== id);
+  state.palestra.programmaAttivo = state.palestra.programmi.length ? state.palestra.programmi[0].id : null;
+  save(); renderPalestra(); renderHome();
+}
+
+function cambiaProgramma(val) {
+  state.palestra.programmaAttivo = val ? parseInt(val) : null;
+  save(); renderPalestra(); renderHome();
+}
+
+// SEDUTE
+function openSedutaModal() {
+  palCtx.progId = state.palestra.programmaAttivo;
+  document.getElementById('seduta-nome').value = '';
+  document.getElementById('seduta-modal').classList.add('open');
+}
+function closeSedutaModal(e) {
+  if (!e || e.target === document.getElementById('seduta-modal')) document.getElementById('seduta-modal').classList.remove('open');
+}
+function saveSeduta() {
+  const nome = document.getElementById('seduta-nome').value.trim();
+  if (!nome) return;
+  const prog = getProg();
+  if (!prog) return;
+  if (!prog.sedute) prog.sedute = [];
+  prog.sedute.push({ id: Date.now(), nome, gruppi: [] });
+  save(); closeSedutaModal(); renderPalestra();
+}
+function deleteSeduta(progId, sedutaId) {
+  const prog = state.palestra.programmi.find(p => p.id === progId);
+  if (!prog) return;
+  prog.sedute = prog.sedute.filter(s => s.id !== sedutaId);
+  save(); renderPalestra();
+}
+
+// SEDUTA DETAIL
+function openSedutaDetail(progId, sedutaId) {
+  palCtx.progId = progId;
+  palCtx.sedutaId = sedutaId;
+  const s = getSeduta();
+  if (!s) return;
+  document.getElementById('seduta-detail-title').textContent = s.nome;
+  renderGruppi();
+  document.getElementById('seduta-detail-modal').classList.add('open');
+}
+function closeSedutaDetailModal(e) {
+  if (!e || e.target === document.getElementById('seduta-detail-modal')) {
+    document.getElementById('seduta-detail-modal').classList.remove('open');
+    renderPalestra();
+  }
+}
+
+function renderGruppi() {
+  const s = getSeduta();
+  const el = document.getElementById('seduta-gruppi-list');
+  if (!s || !s.gruppi || !s.gruppi.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);margin-bottom:12px">Nessun gruppo. Aggiungine uno!</div>';
+    return;
+  }
+  el.innerHTML = s.gruppi.map(g => {
+    const esercizi = g.esercizi || [];
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${esercizi.length?'12px':'0'}">
+        <div style="font-size:14px;font-weight:700">${g.nome}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm" onclick="openEsercizioModal(${g.id})">Modifica</button>
+          <button class="btn-sm btn-danger" onclick="deleteGruppo(${g.id})">✕</button>
+        </div>
+      </div>
+      ${esercizi.length ? `
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${esercizi.map((e, i) => {
+            const isNext = i === 0;
+            const lastLog = (g.log||[]).filter(l => l.esercizioId === e.id).slice(-1)[0];
+            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${isNext?'rgba(124,111,255,0.1)':'var(--bg3)'};border-radius:10px;border:1px solid ${isNext?'var(--accent)':'transparent'}">
+              <div style="width:20px;height:20px;border-radius:50%;background:${isNext?'var(--accent)':'var(--bg4)'};color:${isNext?'white':'var(--text3)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:${isNext?'700':'500'};color:${isNext?'var(--text)':'var(--text2)'}">${e.nome}</div>
+                <div style="font-size:11px;color:var(--accent2);font-weight:600;margin-top:1px">${e.serie}×${e.rip} @ ${e.peso}kg</div>
+              </div>
+              ${isNext ? `<div class="task-check" onclick="eseguiEsercizio(${g.id},${e.id})" style="cursor:pointer;flex-shrink:0" title="Segna come fatto"></div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>` : '<div style="font-size:12px;color:var(--text3)">Nessun esercizio nel gruppo</div>'}
+    </div>`;
+  }).join('');
+}
+
+function eseguiEsercizio(gruppoId, esercizioId) {
+  const s = getSeduta();
+  const g = s && s.gruppi.find(gr => gr.id === gruppoId);
+  if (!g || !g.esercizi.length) return;
+  // Salva log
+  if (!g.log) g.log = [];
+  g.log.push({ esercizioId, data: dateStr() });
+  haptic('success');
+  // Sposta pos 1 all'ultima posizione (ruota la coda)
+  const primo = g.esercizi.shift();
+  g.esercizi.push(primo);
+  save(); renderGruppi();
+}
+
+// GRUPPI
+function openGruppoModal() {
+  document.getElementById('gruppo-nome').value = '';
+  document.getElementById('gruppo-modal').classList.add('open');
+}
+function closeGruppoModal(e) {
+  if (!e || e.target === document.getElementById('gruppo-modal')) document.getElementById('gruppo-modal').classList.remove('open');
+}
+function saveGruppo() {
+  const nome = document.getElementById('gruppo-nome').value.trim();
+  if (!nome) return;
+  const s = getSeduta();
+  if (!s) return;
+  if (!s.gruppi) s.gruppi = [];
+  s.gruppi.push({ id: Date.now(), nome, esercizi: [], log: [] });
+  save(); closeGruppoModal(); renderGruppi();
+}
+function deleteGruppo(gruppoId) {
+  const s = getSeduta();
+  if (!s) return;
+  s.gruppi = s.gruppi.filter(g => g.id !== gruppoId);
+  save(); renderGruppi();
+}
+
+// ESERCIZI
+function openEsercizioModal(gruppoId) {
+  palCtx.gruppoId = gruppoId;
+  const g = getGruppo();
+  if (!g) return;
+  document.getElementById('esercizio-modal-title').textContent = g.nome;
+  document.getElementById('es-nome').value = '';
+  document.getElementById('es-serie').value = '';
+  document.getElementById('es-rip').value = '';
+  document.getElementById('es-peso').value = '';
+  renderEsercizioList();
+  document.getElementById('esercizio-modal').classList.add('open');
+}
+function closeEsercizioModal(e) {
+  if (!e || e.target === document.getElementById('esercizio-modal')) {
+    document.getElementById('esercizio-modal').classList.remove('open');
+    renderGruppi();
+  }
+}
+function renderEsercizioList() {
+  const g = getGruppo();
+  const el = document.getElementById('esercizio-list');
+  const rota = document.getElementById('esercizio-rotazione');
+  if (!g || !g.esercizi || !g.esercizi.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3);margin-bottom:8px">Nessun esercizio ancora</div>';
+    rota.innerHTML = '';
+    return;
+  }
+  const prossimo = g.esercizi[0];
+  rota.innerHTML = `<div style="background:rgba(124,111,255,0.1);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--accent2)">→ Prossimo: ${prossimo.nome} — ${prossimo.serie}×${prossimo.rip} @ ${prossimo.peso}kg</div>`;
+
+  el.innerHTML = g.esercizi.map((e, i) => {
+    const isNext = i === 0;
+    return `<div class="drag-item" data-id="${e.id}" style="background:${isNext?'rgba(124,111,255,0.08)':' var(--bg3)'};border:1px solid ${isNext?'var(--accent)':' transparent'};border-radius:10px;margin-bottom:8px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px">
+        <div class="drag-handle" style="color:var(--text3);font-size:18px;cursor:grab;padding:0 6px;flex-shrink:0;line-height:1;-webkit-user-select:none;user-select:none">⠿</div>
+        <div style="width:22px;height:22px;border-radius:50%;background:${isNext?'var(--accent)':' var(--bg4)'};color:${isNext?'white':'var(--text3)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:${isNext?'700':'600'};color:${isNext?'var(--text)':'var(--text2)'}">${e.nome}</div>
+          <div style="font-size:11px;color:var(--accent2);font-weight:600;margin-top:1px">${e.serie}×${e.rip} @ ${e.peso}kg</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn-sm" onclick="toggleEditEsercizio(${e.id})" style="padding:4px 7px">✏️</button>
+          <button class="btn-sm btn-danger" onclick="deleteEsercizio(${i})" style="padding:4px 7px">✕</button>
+        </div>
+      </div>
+      <div id="es-edit-${e.id}" style="display:none;padding:0 12px 12px;border-top:1px solid var(--border)">
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+          <input type="text" id="es-edit-nome-${e.id}" value="${e.nome}" placeholder="Nome" style="width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;font-weight:500;padding:8px 10px;outline:none;box-sizing:border-box">
+          <div style="display:flex;gap:6px">
+            <input type="number" id="es-edit-serie-${e.id}" value="${e.serie}" placeholder="Serie" style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px;outline:none">
+            <input type="number" id="es-edit-rip-${e.id}" value="${e.rip}" placeholder="Rip." style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px;outline:none">
+            <input type="number" id="es-edit-peso-${e.id}" value="${e.peso}" placeholder="kg" step="0.5" style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px;outline:none">
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" onclick="toggleEditEsercizio(${e.id})" style="flex:1;padding:8px">Annulla</button>
+            <button class="btn" onclick="saveEditEsercizio(${e.id})" style="flex:1;padding:8px">Salva</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  setupDrag(el);
+}
+
+function setupDrag(list) {
+  // Remove old listeners by replacing the node
+  const fresh = list.cloneNode(true);
+  list.parentNode.replaceChild(fresh, list);
+  list = fresh;
+  // Re-attach onclick listeners lost by cloneNode (innerHTML already has them as strings, they survive)
+
+  let dragging = null;
+  let ghost = null;
+  let ghostOffsetY = 0;
+
+  function cy(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+  function cx(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+  list.addEventListener('mousedown', start);
+  list.addEventListener('touchstart', start, { passive: false });
+
+  function start(e) {
+    if (!e.target.closest('.drag-handle')) return;
+    e.preventDefault();
+    dragging = e.target.closest('.drag-item');
+    const rect = dragging.getBoundingClientRect();
+    ghostOffsetY = cy(e) - rect.top;
+
+    ghost = dragging.cloneNode(true);
+    ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;z-index:9999;opacity:0.93;box-shadow:0 10px 32px rgba(0,0,0,0.55);border-radius:10px;pointer-events:none;margin:0;`;
+    document.body.appendChild(ghost);
+    dragging.style.opacity = '0.2';
+
+    document.addEventListener('mousemove', move);
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchend', end);
+  }
+
+  function move(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    ghost.style.top = (cy(e) - ghostOffsetY) + 'px';
+
+    // Find best insertion point
+    const siblings = [...list.querySelectorAll('.drag-item')].filter(n => n !== dragging);
+    let placed = false;
+    for (const sib of siblings) {
+      const r = sib.getBoundingClientRect();
+      if (cy(e) < r.top + r.height * 0.5) {
+        list.insertBefore(dragging, sib);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed && siblings.length) list.appendChild(dragging);
+  }
+
+  function end() {
+    if (!dragging) return;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchend', end);
+
+    ghost.remove();
+    dragging.style.opacity = '';
+
+    // Save new order
+    const g = getGruppo();
+    if (g) {
+      const ids = [...list.querySelectorAll('.drag-item')].map(n => parseInt(n.dataset.id));
+      const map = Object.fromEntries(g.esercizi.map(e => [e.id, e]));
+      g.esercizi = ids.map(id => map[id]).filter(Boolean);
+      save();
+    }
+
+    dragging = null;
+    ghost = null;
+    renderEsercizioList();
+  }
+}
+
+function toggleEditEsercizio(esId) {
+  const el = document.getElementById(`es-edit-${esId}`);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveEditEsercizio(esId) {
+  const g = getGruppo();
+  if (!g) return;
+  const e = g.esercizi.find(e => e.id === esId);
+  if (!e) return;
+  const nome = document.getElementById(`es-edit-nome-${esId}`).value.trim();
+  const serie = parseInt(document.getElementById(`es-edit-serie-${esId}`).value);
+  const rip = parseInt(document.getElementById(`es-edit-rip-${esId}`).value);
+  const peso = parseFloat(document.getElementById(`es-edit-peso-${esId}`).value);
+  if (!nome || isNaN(serie) || isNaN(rip) || isNaN(peso)) return;
+  e.nome = nome; e.serie = serie; e.rip = rip; e.peso = peso;
+  save(); renderEsercizioList();
+}
+
+function deleteEsercizio(idx) {
+  const g = getGruppo();
+  if (!g) return;
+  g.esercizi.splice(idx, 1);
+  save(); renderEsercizioList();
+}
+
+function addEsercizio() {
+  const nome = document.getElementById('es-nome').value.trim();
+  const serie = parseInt(document.getElementById('es-serie').value);
+  const rip = parseInt(document.getElementById('es-rip').value);
+  const peso = parseFloat(document.getElementById('es-peso').value);
+  if (!nome || isNaN(serie) || isNaN(rip) || isNaN(peso)) return;
+  const g = getGruppo();
+  if (!g) return;
+  g.esercizi.push({ id: Date.now(), nome, serie, rip, peso });
+  document.getElementById('es-nome').value = '';
+  document.getElementById('es-serie').value = '';
+  document.getElementById('es-rip').value = '';
+  document.getElementById('es-peso').value = '';
+  save(); renderEsercizioList();
+}
+
+// DIETA
+function renderDieta() {
+  const { pesi, pesoObiettivo, diete } = state.dieta;
+  const ultimo = pesi.length ? pesi[pesi.length - 1] : null;
+
+  // Set default month/year in selects
+  const now = new Date();
+  const meseEl = document.getElementById('dieta-peso-mese');
+  if (meseEl && !meseEl.dataset.touched) meseEl.value = now.getMonth();
+  const annoEl = document.getElementById('dieta-peso-anno');
+  if (annoEl && !annoEl.value) annoEl.placeholder = now.getFullYear();
+
+  const pesoEl = document.getElementById('dieta-peso-attuale');
+  pesoEl.textContent = ultimo ? ultimo.valore + ' kg' : '—';
+
+  const obEl = document.getElementById('dieta-peso-obiettivo');
+  obEl.textContent = pesoObiettivo ? pesoObiettivo + ' kg' : '—';
+  obEl.style.cursor = 'pointer';
+  obEl.onclick = () => {
+    document.getElementById('peso-obiettivo-input').value = pesoObiettivo || '';
+    document.getElementById('peso-obiettivo-modal').classList.add('open');
+  };
+  obEl.title = 'Tocca per modificare';
+
+  // Storico pesi
+  const listEl = document.getElementById('dieta-pesi-list');
+  if (!pesi.length) {
+    listEl.innerHTML = '<div class="empty" style="padding:20px 0"><div class="empty-text">Nessun peso registrato ancora</div></div>';
+  } else {
+    listEl.innerHTML = [...pesi].reverse().map(p => `
+      <div class="task-item">
+        <div class="task-body">
+          <div class="task-text">${p.valore} kg</div>
+          <div class="task-meta">${p.data}</div>
+        </div>
+        <button class="btn-sm btn-danger" onclick="deletePeso(${p.id})">✕</button>
+      </div>`).join('');
+  }
+
+  // Diete
+  const dietaEl = document.getElementById('dieta-list');
+  if (!diete.length) {
+    dietaEl.innerHTML = '<div class="empty" style="padding:20px 0"><div class="empty-text">Nessuna dieta registrata</div></div>';
+  } else {
+    dietaEl.innerHTML = diete.map(d => `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:15px;font-weight:700">${d.nome}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn-sm" onclick="toggleAlimenti(${d.id})">📋 Alimenti</button>
+            <button class="btn-sm btn-danger" onclick="deleteDieta(${d.id})">✕</button>
+          </div>
+        </div>
+        <div id="alimenti-${d.id}" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+          <textarea
+            id="alimenti-text-${d.id}"
+            placeholder="Scrivi qui gli alimenti della tua dieta..."
+            onchange="saveAlimenti(${d.id})"
+            oninput="saveAlimenti(${d.id})"
+            style="width:100%;min-height:120px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:400;line-height:1.7;padding:10px 14px;outline:none;resize:vertical;box-sizing:border-box"
+          >${d.alimenti || ''}</textarea>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function addPeso() {
+  const v = parseFloat(document.getElementById('dieta-peso-input').value);
+  if (isNaN(v) || v <= 0) return;
+  const mesiNomi = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  const mesiNomiLunghi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  const now = new Date();
+  const giornoInput = parseInt(document.getElementById('dieta-peso-giorno').value);
+  const meseInput = parseInt(document.getElementById('dieta-peso-mese').value);
+  const annoInput = parseInt(document.getElementById('dieta-peso-anno').value);
+  const giorno = (!isNaN(giornoInput) && giornoInput >= 1 && giornoInput <= 31) ? giornoInput : now.getDate();
+  const mese = (!isNaN(meseInput) && meseInput >= 0 && meseInput <= 11) ? meseInput : now.getMonth();
+  const anno = (!isNaN(annoInput) && annoInput >= 2020) ? annoInput : now.getFullYear();
+  state.dieta.pesi.push({ id: Date.now(), valore: v, giorno, month: mese, year: anno, data: `${giorno} ${mesiNomi[mese]} ${anno}` });
+  document.getElementById('dieta-peso-input').value = '';
+  document.getElementById('dieta-peso-giorno').value = '';
+  document.getElementById('dieta-peso-anno').value = '';
+  state.dieta.pesi.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month !== b.month ? a.month - b.month : a.giorno - b.giorno);
+  save(); renderDieta();
+}
+
+function toggleGrafico() {
+  const el = document.getElementById('dieta-grafico');
+  const visible = el.style.display !== 'none';
+  el.style.display = visible ? 'none' : 'block';
+  if (!visible) drawChart();
+}
+
+function drawChart() {
+  const pesi = state.dieta.pesi;
+  const canvas = document.getElementById('peso-chart');
+  if (!pesi.length || !canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth - 32;
+  const H = 180;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const vals = pesi.map(p => p.valore);
+  const minV = Math.min(...vals) - 1;
+  const maxV = Math.max(...vals) + 1;
+  const pad = { top: 16, right: 16, bottom: 36, left: 40 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+
+  const toX = i => pad.left + (i / (pesi.length - 1 || 1)) * chartW;
+  const toY = v => pad.top + (1 - (v - minV) / (maxV - minV)) * chartH;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (i / 4) * chartH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
+    const label = (maxV - (i / 4) * (maxV - minV)).toFixed(1);
+    ctx.fillStyle = 'rgba(144,144,168,0.8)';
+    ctx.font = '10px Poppins, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(label, pad.left - 4, y + 4);
+  }
+
+  // Obiettivo line
+  if (state.dieta.pesoObiettivo) {
+    const oy = toY(state.dieta.pesoObiettivo);
+    ctx.strokeStyle = 'rgba(62,207,142,0.4)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, oy); ctx.lineTo(pad.left + chartW, oy); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(62,207,142,0.8)';
+    ctx.font = '10px Poppins, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('obiettivo', pad.left + 4, oy - 4);
+  }
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+  grad.addColorStop(0, 'rgba(124,111,255,0.3)');
+  grad.addColorStop(1, 'rgba(124,111,255,0)');
+  ctx.beginPath();
+  pesi.forEach((p, i) => { i === 0 ? ctx.moveTo(toX(i), toY(p.valore)) : ctx.lineTo(toX(i), toY(p.valore)); });
+  ctx.lineTo(toX(pesi.length - 1), pad.top + chartH);
+  ctx.lineTo(toX(0), pad.top + chartH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.strokeStyle = '#7c6fff';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  pesi.forEach((p, i) => { i === 0 ? ctx.moveTo(toX(i), toY(p.valore)) : ctx.lineTo(toX(i), toY(p.valore)); });
+  ctx.stroke();
+
+  // Dots + labels x-axis
+  pesi.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(toX(i), toY(p.valore), 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#a594ff';
+    ctx.fill();
+    // X label every step or max 6
+    const step = Math.ceil(pesi.length / 6);
+    if (i % step === 0 || i === pesi.length - 1) {
+      ctx.fillStyle = 'rgba(144,144,168,0.8)';
+      ctx.font = '9px Poppins, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.data.split(' ').slice(0,2).join(' '), toX(i), H - pad.bottom + 14);
+    }
+  });
+}
+
+function deletePeso(id) {
+  state.dieta.pesi = state.dieta.pesi.filter(p => p.id !== id);
+  save(); renderDieta();
+}
+
+function addDieta() {
+  const nome = document.getElementById('dieta-nome-input').value.trim();
+  if (!nome) return;
+  const mesi = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  const now = new Date();
+  state.dieta.diete.push({ id: Date.now(), nome, data: `${now.getDate()} ${mesi[now.getMonth()]} ${now.getFullYear()}`, attiva: true });
+  document.getElementById('dieta-nome-input').value = '';
+  save(); renderDieta();
+}
+
+function toggleAlimenti(id) {
+  const el = document.getElementById(`alimenti-${id}`);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveAlimenti(id) {
+  const d = state.dieta.diete.find(d => d.id === id);
+  if (!d) return;
+  d.alimenti = document.getElementById(`alimenti-text-${id}`).value;
+  save();
+}
+
+function toggleDieta(id) {
+  const d = state.dieta.diete.find(d => d.id === id);
+  if (d) { d.attiva = !d.attiva; save(); renderDieta(); }
+}
+
+function deleteDieta(id) {
+  state.dieta.diete = state.dieta.diete.filter(d => d.id !== id);
+  save(); renderDieta();
+}
+
+function closePesoObiettivoModal(e) {
+  if (!e || e.target === document.getElementById('peso-obiettivo-modal'))
+    document.getElementById('peso-obiettivo-modal').classList.remove('open');
+}
+
+function savePesoObiettivo() {
+  const v = parseFloat(document.getElementById('peso-obiettivo-input').value);
+  if (isNaN(v) || v <= 0) return;
+  state.dieta.pesoObiettivo = v;
+  save(); closePesoObiettivoModal(); renderDieta();
+}
+
+// NOTE
+function openNote() {
+  document.getElementById('note-body').value = state.nota || '';
+  document.getElementById('note-editor').classList.add('open');
+  setTimeout(() => document.getElementById('note-body').focus(), 300);
+}
+
+function closeNote() {
+  state.nota = document.getElementById('note-body').value;
+  save();
+  const el = document.getElementById('note-editor');
+  el.classList.remove('open');
+  el.classList.add('closing');
+  setTimeout(() => { el.classList.remove('closing'); }, 210);
+}
+
+// HAPTIC FEEDBACK
+function haptic(type = 'light') {
+  try {
+    if (window.navigator && window.navigator.vibrate) {
+      const patterns = { light: [10], medium: [20], heavy: [30], success: [10, 50, 10] };
+      window.navigator.vibrate(patterns[type] || [10]);
+    }
+  } catch(e) {}
+}
+
+// ENTER KEY
+document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+document.getElementById('spesa-amount').addEventListener('keydown', e => { if (e.key === 'Enter') addSpesa(); });
+
+// INIT
+load();
+checkAndResetSpunte();
+renderHome();
+
+// Wait for DOM to be fully painted before setting nav state
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    setActiveNav('home');
+  });
+});
+
+// Safe area handled by CSS calc(env(safe-area-inset-bottom) + 10px)
+
+// NAV — manage styles directly via JS for iOS reliability
+function setActiveNav(page) {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    const isActive = btn.dataset.page === page;
+    btn.classList.toggle('active', isActive);
+    const emoji = btn.querySelector('.nav-emoji');
+    const dot = btn.querySelector('.nav-dot');
+    if (emoji) {
+      emoji.style.filter = isActive ? 'grayscale(0) brightness(1)' : 'grayscale(1) brightness(0.4)';
+      emoji.style.transform = isActive ? 'scale(1.2) translateY(-2px)' : '';
+    }
+    if (dot) dot.style.opacity = isActive ? '1' : '0';
+  });
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    haptic('light');
+    setActiveNav(btn.dataset.page);
+    goTo(btn.dataset.page);
+  }, { passive: false });
+});
+
+// iOS PWA: reapply nav state when app resumes from cache
+window.addEventListener('pageshow', () => {
+  const activePage = document.querySelector('.page.active');
+  if (activePage) setActiveNav(activePage.id.replace('page-', ''));
+});
+// Hide nav when iOS keyboard appears
+if (window.visualViewport) {
+  let lastHeight = window.visualViewport.height;
+  window.visualViewport.addEventListener('resize', () => {
+    const nav = document.querySelector('.nav');
+    const currentHeight = window.visualViewport.height;
+    if (currentHeight < lastHeight - 100) {
+      nav.style.display = 'none';
+    } else {
+      nav.style.display = 'flex';
+    }
+    lastHeight = currentHeight;
+  });
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
