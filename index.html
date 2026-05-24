@@ -32,10 +32,6 @@
   --red-bg: rgba(244,96,96,0.1);
   --amber: #f5a623;
   --amber-bg: rgba(245,166,35,0.1);
-  --blue: #4fa8ff;
-  --blue-bg: rgba(79,168,255,0.1);
-  --pink: #ff6eb4;
-  --pink-bg: rgba(255,110,180,0.1);
   --radius: 16px;
   --radius-sm: 12px;
   --font: 'Poppins', sans-serif;
@@ -104,8 +100,6 @@ body {
   opacity: 0;
 }
 
-
-
 /* HEADER */
 .header {
   padding: 60px 20px 16px;
@@ -142,7 +136,6 @@ body {
 /* PAGES */
 .page { display: none; animation: fadeUp 0.22s ease; position: fixed; inset: 0; bottom: calc(60px + env(safe-area-inset-bottom)); overflow: hidden; }
 .page.active { display: flex; flex-direction: column; }
-.page-inner { padding-top: 0; }
 
 /* Fixed top section (title, forms, stats) */
 .page-header {
@@ -193,15 +186,6 @@ body {
   height: 14px;
   background: var(--accent);
   border-radius: 2px;
-}
-
-/* CARDS */
-.card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 10px;
 }
 
 /* INPUT ROW */
@@ -298,19 +282,6 @@ select option { background: var(--bg3); }
 .task-body { flex: 1; min-width: 0; }
 .task-text { font-size: 14px; font-weight: 500; line-height: 1.35; }
 .task-meta { font-size: 11px; color: var(--text3); margin-top: 3px; font-weight: 500; }
-.task-actions { display: flex; gap: 6px; flex-shrink: 0; }
-
-.priority-badge {
-  display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.prio-alta { background: var(--red-bg); color: var(--red); }
-.prio-media { background: var(--amber-bg); color: var(--amber); }
 
 .tipo-badge {
   display: inline-flex;
@@ -483,7 +454,7 @@ select option { background: var(--bg3); }
       </div>
     </div>
     <div class="stat-card"><div class="stat-label">Da pagare</div><div class="stat-value" id="home-spese" style="color:var(--red)">€0</div></div>
-    <div class="stat-card"><div class="stat-label">Palestra</div><div class="stat-value" id="home-palestra" style="color:var(--blue)">—</div></div>
+    <div class="stat-card"><div class="stat-label">Palestra</div><div class="stat-value" id="home-palestra" style="color:var(--accent2)">—</div></div>
     <div class="stat-card"><div class="stat-label">Kg rimanenti</div><div class="stat-value" id="home-kg" style="color:var(--green)">—</div></div>
   </div>
   <div class="section-title">Task urgenti</div>
@@ -651,22 +622,35 @@ select option { background: var(--bg3); }
     </select>
     <input type="number" id="dieta-peso-anno" placeholder="Anno" min="2020" max="2099" style="flex:1.2">
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:4px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;margin-bottom:0">
     <div class="section-title" style="margin:0">Storico pesi</div>
-    <button class="btn-sm" onclick="toggleGrafico()">📈 Grafico</button>
+    <div style="display:flex;gap:6px">
+      <button class="btn-sm" onclick="toggleGrafico()">📈 Grafico</button>
+      <button class="btn-sm" onclick="toggleDietaSection('pesi')" id="btn-toggle-pesi">▼</button>
+    </div>
   </div>
 </div>
 <div class="page-list">
-  <div id="dieta-grafico" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
-    <canvas id="peso-chart" style="width:100%;height:180px"></canvas>
+  <div id="dieta-section-pesi">
+    <div id="dieta-grafico" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;margin-top:12px">
+      <canvas id="peso-chart" style="width:100%;height:180px"></canvas>
+    </div>
+    <div id="dieta-pesi-list" style="margin-top:8px"></div>
   </div>
-  <div id="dieta-pesi-list"></div>
-  <div class="section-title">Dieta attiva</div>
-  <div class="input-row">
-    <input type="text" id="dieta-nome-input" placeholder="Nome dieta (es. Ipocalorica...)" maxlength="60" style="flex:2">
-    <button class="btn" onclick="addDieta()">+</button>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;margin-bottom:0">
+    <div class="section-title" style="margin:0">Diete</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn-sm" onclick="openDietaAdd()" id="btn-add-dieta">+</button>
+      <button class="btn-sm" onclick="toggleDietaSection('diete')" id="btn-toggle-diete">▼</button>
+    </div>
   </div>
-  <div id="dieta-list"></div>
+  <div id="dieta-section-diete">
+    <div class="input-row" id="dieta-add-form" style="display:none;margin-top:8px">
+      <input type="text" id="dieta-nome-input" placeholder="Nome dieta (es. Ipocalorica...)" maxlength="60" style="flex:2">
+      <button class="btn" onclick="addDieta()">+</button>
+    </div>
+    <div id="dieta-list" style="margin-top:8px"></div>
+  </div>
 </div>
 </div>
 
@@ -742,6 +726,99 @@ select option { background: var(--bg3); }
   </div>
 </div>
 
+<!-- UNIVERSITÀ -->
+<div class="page" id="page-universita">
+<div class="page-header">
+  <div class="page-title-bar">UNIVERSITÀ</div>
+
+  <!-- Riepilogo -->
+  <div class="stat-row" style="margin-top:4px">
+    <div class="stat-card">
+      <div class="stat-label">Media voti</div>
+      <div class="stat-value" id="uni-media" style="color:var(--accent2)">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">CFU acquisiti</div>
+      <div class="stat-value" id="uni-cfu" style="color:var(--green)">0</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:8px;margin:16px 0 16px">
+    <div class="chip active" id="uni-tab-superati" onclick="switchUniTab('superati',this)" style="flex:1;text-align:center">Superati</div>
+    <div class="chip" id="uni-tab-mancanti" onclick="switchUniTab('mancanti',this)" style="flex:1;text-align:center">Mancanti</div>
+    <a href="https://www.giurisprudenza.unina.it/documents/18034198/78080551/Calendario+degli+esami+2026+LMG01+estiva+autunnale.pdf/9595a6b0-60b9-416f-98e1-83b9d580bb0d" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:5px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:var(--font);font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;letter-spacing:0.04em">📄 Vedi date</a>
+  </div>
+
+  <!-- Form esame superato -->
+  <div id="uni-form-superati">
+    <div class="input-row">
+      <input type="text" id="uni-nome-s" placeholder="Nome esame" style="flex:2;text-transform:uppercase">
+      <input type="number" id="uni-voto" placeholder="Voto" min="18" max="30" style="flex:0.8">
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div id="uni-lode-check" class="task-check" onclick="toggleLode()" style="cursor:pointer"></div>
+        <span style="font-size:12px;font-weight:700;color:var(--text2)">Lode</span>
+      </div>
+    </div>
+    <div class="input-row">
+      <input type="number" id="uni-cfu-s" placeholder="CFU" min="1" max="30" style="flex:0.8">
+      <input type="number" id="uni-giorno-s" placeholder="GG" min="1" max="31" style="flex:0.7">
+      <select id="uni-mese-s" style="flex:1.2;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 6px;outline:none">
+        <option value="gen">Gen</option><option value="feb">Feb</option><option value="mar">Mar</option>
+        <option value="apr">Apr</option><option value="mag">Mag</option><option value="giu">Giu</option>
+        <option value="lug">Lug</option><option value="ago">Ago</option><option value="set">Set</option>
+        <option value="ott">Ott</option><option value="nov">Nov</option><option value="dic">Dic</option>
+      </select>
+      <input type="number" id="uni-anno-s" placeholder="Anno" min="2020" max="2099" style="flex:1.1">
+      <button class="btn" onclick="addEsameSuperato()">+</button>
+    </div>
+  </div>
+
+  <!-- Form esame mancante -->
+  <div id="uni-form-mancanti" style="display:none">
+    <div class="input-row">
+      <input type="text" id="uni-nome-m" placeholder="Nome esame" style="flex:2;text-transform:uppercase">
+      <input type="number" id="uni-cfu-m" placeholder="CFU" min="1" max="30" style="flex:0.8">
+    </div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin:4px 0 6px">Date possibili</div>
+    <div class="input-row">
+      <input type="number" id="uni-giorno-m" placeholder="GG" min="1" max="31" style="flex:0.7">
+      <select id="uni-mese-m" style="flex:1.2;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 6px;outline:none">
+        <option value="gen">Gen</option><option value="feb">Feb</option><option value="mar">Mar</option>
+        <option value="apr">Apr</option><option value="mag">Mag</option><option value="giu">Giu</option>
+        <option value="lug">Lug</option><option value="ago">Ago</option><option value="set">Set</option>
+        <option value="ott">Ott</option><option value="nov">Nov</option><option value="dic">Dic</option>
+      </select>
+      <input type="number" id="uni-anno-m" placeholder="Anno" min="2020" max="2099" style="flex:1.1">
+      <button class="btn-sm" onclick="addDataMancante()" style="flex-shrink:0">+ Data</button>
+    </div>
+    <div id="uni-date-m-list" style="margin-bottom:8px"></div>
+    <button class="btn" onclick="addEsameMancante()" style="width:100%;margin-top:4px">Crea esame</button>
+  </div>
+</div>
+<div class="page-list">
+  <div id="uni-list"></div>
+</div>
+</div>
+
+<!-- MODAL PROMUOVI ESAME -->
+<div class="modal-overlay" id="promote-modal" onclick="closePromoteModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="promote-modal-title">Esame superato!</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Inserisci il voto e scegli la data</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input type="number" id="promote-voto" placeholder="Voto (18-30)" min="18" max="30" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;padding:10px 14px;outline:none">
+      <div id="promote-lode-check" class="task-check" onclick="togglePromoteLode()" style="cursor:pointer"></div>
+      <span style="font-size:12px;font-weight:700;color:var(--text2)">Lode</span>
+    </div>
+    <div id="promote-date-list" style="margin-bottom:14px"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closePromoteModal()">Annulla</button>
+      <button class="btn" onclick="confirmPromote()">Conferma</button>
+    </div>
+  </div>
+</div>
+
 <!-- BOTTOM NAV -->
 <nav class="nav">
   <button class="nav-btn active" data-page="home" id="nav-home">
@@ -759,19 +836,21 @@ select option { background: var(--bg3); }
   <button class="nav-btn" data-page="dieta" id="nav-dieta">
     <div class="nav-emoji">🍽️</div><div class="nav-dot"></div>
   </button>
+  <button class="nav-btn" data-page="universita" id="nav-universita">
+    <div class="nav-emoji">🎓</div><div class="nav-dot"></div>
+  </button>
 </nav>
 
 <script>
-let state = { tasks: [], spese: [], palestra: { programmaAttivo: null, programmi: [] }, dieta: { pesi: [], pesoObiettivo: null, diete: [] }, nota: '' };
+let state = { tasks: [], spese: [], palestra: { programmaAttivo: null, programmi: [] }, dieta: { pesi: [], pesoObiettivo: null, diete: [] }, nota: '', universita: { superati: [], mancanti: [] } };
 let taskFilter = 'tutti';
 let speseFilter = 'entrata';
-
 
 function save() { try { localStorage.setItem('dashboard_data', JSON.stringify(state)); } catch(e){} }
 function load() {
   try {
     const d = localStorage.getItem('dashboard_data');
-    if (d) { const p = JSON.parse(d); state.tasks = p.tasks || []; state.spese = p.spese || []; state.palestra = p.palestra || { programmaAttivo: null, programmi: [] }; state.dieta = p.dieta || { pesi: [], pesoObiettivo: null, diete: [] }; state.nota = p.nota || ''; }
+    if (d) { const p = JSON.parse(d); state.tasks = p.tasks || []; state.spese = p.spese || []; state.palestra = p.palestra || { programmaAttivo: null, programmi: [] }; state.dieta = p.dieta || { pesi: [], pesoObiettivo: null, diete: [] }; state.nota = p.nota || ''; state.universita = p.universita || { superati: [], mancanti: [] }; }
   } catch(e){}
 }
 
@@ -794,17 +873,11 @@ function goTo(page) {
   if (page === 'spese') renderSpese();
   if (page === 'palestra') renderPalestra();
   if (page === 'dieta') renderDieta();
+  if (page === 'universita') renderUniversita();
 }
-
-
-
-
-
 
 function renderHome() {
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
   const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
   document.getElementById('home-date-title').textContent = `Riepilogo di oggi, ${now.getDate()} ${mesi[now.getMonth()]} ${now.getFullYear()}`;
   const oggi = now.getDate();
@@ -823,7 +896,7 @@ function renderHome() {
   document.getElementById('home-tasks').textContent = taskOggi;
   const arrEl = document.getElementById('home-tasks-arretrati');
   if (arretrati > 0) {
-    arrEl.textContent = 'e ' + arretrati + ' arretrat' + (arretrati === 1 ? 'o' : 'i');
+    arrEl.textContent = '+ ' + arretrati + ' arretrat' + (arretrati === 1 ? 'o' : 'i');
     arrEl.style.color = 'var(--red)';
   } else {
     arrEl.textContent = 'nessun arretrato ✓';
@@ -833,16 +906,25 @@ function renderHome() {
   const progAttivo = state.palestra.programmi.find(p => p.id === state.palestra.programmaAttivo);
   const palEl = document.getElementById('home-palestra');
   palEl.textContent = progAttivo ? progAttivo.nome : '—';
-  palEl.style.color = 'var(--blue)';
+  palEl.style.color = 'var(--accent2)';
   palEl.style.fontSize = progAttivo && progAttivo.nome.length > 10 ? '13px' : '';
 
-  // Kg rimanenti
+  // Kg rimanenti + trend
   const kgEl = document.getElementById('home-kg');
   const ultimoPeso = state.dieta.pesi.length ? state.dieta.pesi[state.dieta.pesi.length - 1] : null;
+  const penultimoPeso = state.dieta.pesi.length > 1 ? state.dieta.pesi[state.dieta.pesi.length - 2] : null;
   const pesoOb = state.dieta.pesoObiettivo;
   if (ultimoPeso && pesoOb) {
     const diff = Math.abs(ultimoPeso.valore - pesoOb).toFixed(1);
-    kgEl.textContent = diff;
+    let freccia = '';
+    if (penultimoPeso) {
+      const distAttuale = Math.abs(ultimoPeso.valore - pesoOb);
+      const distPrecedente = Math.abs(penultimoPeso.valore - pesoOb);
+      if (distAttuale < distPrecedente) freccia = ' <span style="color:var(--green)">↑</span>';
+      else if (distAttuale > distPrecedente) freccia = ' <span style="color:var(--red)">↓</span>';
+      else freccia = ' <span style="color:var(--text3)">—</span>';
+    }
+    kgEl.innerHTML = diff + freccia;
     kgEl.style.color = 'var(--green)';
   } else {
     kgEl.textContent = '—';
@@ -896,8 +978,10 @@ function taskHTML(t, mini = false) {
   const tipoLabel = { universita: 'Università', trading: 'Trading', altro: 'Altro' }[t.tipo] || 'Altro';
   const tipoClass = { universita: 'tipo-universita', trading: 'tipo-trading', altro: 'tipo-altro' }[t.tipo] || 'tipo-altro';
   const mesiNomi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-  const meseTxt = t.mese != null ? mesiNomi[t.mese] : mesiNomi[new Date().getMonth()];
-  const giornoLabel = t.giorno ? `${t.giorno} ${meseTxt}` : '';
+  const now = new Date();
+  const meseTxt = t.mese != null ? mesiNomi[t.mese] : mesiNomi[now.getMonth()];
+  const isOggi = t.giorno === now.getDate() && (t.mese ?? now.getMonth()) === now.getMonth();
+  const giornoLabel = t.giorno ? (isOggi ? 'oggi' : `${t.giorno} ${meseTxt}`) : '';
   return `<div class="task-item ${t.done ? 'done' : ''}" style="align-items:center">
     <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})" style="flex-shrink:0;align-self:center"></div>
     <div class="task-body">
@@ -1024,8 +1108,9 @@ function renderSpese() {
   el.innerHTML = spese.map(s => {
     const isE = s.tipo === 'entrata';
     const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-    const meseCorrente = mesi[now.getMonth()];
-    const giornoLabel = s.giorno ? `${s.giorno} ${meseCorrente}` : (isE ? new Date(s.date).toLocaleDateString('it-IT', { month:'short', year:'numeric' }) : 'uscita fissa');
+    const meseNome = mesi[now.getMonth()];
+    const isOggi = s.giorno === now.getDate() && s.month === now.getMonth() && s.year === now.getFullYear();
+    const giornoLabel = s.giorno ? (isOggi ? 'oggi' : `${s.giorno} ${meseNome}`) : (isE ? new Date(s.date).toLocaleDateString('it-IT', { month:'short', year:'numeric' }) : 'uscita fissa');
     const isPagata = !!s.pagata;
     return `<div class="spesa-item" style="${isPagata ? 'opacity:0.45' : ''}">
       ${!isE ? `<div class="task-check ${isPagata ? 'checked' : ''}" onclick="togglePagata(${s.id})" style="flex-shrink:0;cursor:pointer"></div>` : `<div class="spesa-icon" style="background:var(--green-bg)">💰</div>`}
@@ -1069,7 +1154,7 @@ function renderPalestra() {
 function renderSedute(prog) {
   const el = document.getElementById('pal-sedute-list');
   if (!prog.sedute || !prog.sedute.length) {
-    el.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0">Nessuna seduta. Aggiungine una!</div>';
+    el.innerHTML = '<div class="empty"><div class="empty-icon">💪</div><div class="empty-text">Nessuna seduta ancora.<br>Aggiungine una!</div></div>';
     return;
   }
   el.innerHTML = prog.sedute.map(s => `
@@ -1443,7 +1528,7 @@ function renderDieta() {
       <div class="task-item">
         <div class="task-body">
           <div class="task-text">${p.valore} kg</div>
-          <div class="task-meta">${p.data}</div>
+          <div class="task-meta">${p.giorno === now.getDate() && p.month === now.getMonth() && p.year === now.getFullYear() ? 'oggi' : p.data}</div>
         </div>
         <button class="btn-sm btn-danger" onclick="deletePeso(${p.id})">✕</button>
       </div>`).join('');
@@ -1496,6 +1581,19 @@ function addPeso() {
   document.getElementById('dieta-peso-anno').value = '';
   state.dieta.pesi.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month !== b.month ? a.month - b.month : a.giorno - b.giorno);
   save(); renderDieta();
+}
+
+function toggleDietaSection(which) {
+  const el = document.getElementById(`dieta-section-${which}`);
+  const btn = document.getElementById(`btn-toggle-${which}`);
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '▶' : '▼';
+}
+
+function openDietaAdd() {
+  const form = document.getElementById('dieta-add-form');
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
 }
 
 function toggleGrafico() {
@@ -1655,6 +1753,230 @@ function closeNote() {
   el.classList.remove('open');
   el.classList.add('closing');
   setTimeout(() => { el.classList.remove('closing'); }, 210);
+}
+
+// UNIVERSITÀ
+let uniLode = false;
+let uniTab = 'superati';
+function toggleLode() {
+  uniLode = !uniLode;
+  const el = document.getElementById('uni-lode-check');
+  el.classList.toggle('checked', uniLode);
+}
+
+function switchUniTab(tab, el) {
+  uniTab = tab;
+  document.querySelectorAll('#uni-tab-superati, #uni-tab-mancanti').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('uni-form-superati').style.display = tab === 'superati' ? 'block' : 'none';
+  document.getElementById('uni-form-mancanti').style.display = tab === 'mancanti' ? 'block' : 'none';
+  renderUniversita();
+}
+
+function renderUniversita() {
+  const { superati, mancanti } = state.universita;
+
+  // Media e CFU
+  const cfuTot = superati.reduce((a, e) => a + (e.cfu || 0), 0);
+  const media = superati.length ? (superati.reduce((a, e) => a + (e.voto * (e.cfu || 1)), 0) / (cfuTot || superati.length)).toFixed(2) : '—';
+  document.getElementById('uni-media').textContent = media;
+  document.getElementById('uni-cfu').textContent = cfuTot;
+
+  const el = document.getElementById('uni-list');
+
+  const mesiOrd = { gen:1, feb:2, mar:3, apr:4, mag:5, giu:6, lug:7, ago:8, set:9, ott:10, nov:11, dic:12 };
+  const esameSortKey = e => {
+    const a = parseInt(e.anno) || 0;
+    const m = mesiOrd[e.mese] || 0;
+    const g = parseInt(e.giorno) || 0;
+    return a * 10000 + m * 100 + g;
+  };
+
+  if (uniTab === 'superati') {
+    if (!superati.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📚</div><div class="empty-text">Nessun esame superato ancora</div></div>';
+      return;
+    }
+    el.innerHTML = [...superati].sort((a,b) => esameSortKey(b) - esameSortKey(a)).map(e => {
+      const lode = e.lode ? 'L' : '';
+      const dataStr = e.giorno && e.mese && e.anno ? `${e.giorno} ${e.mese} ${e.anno}` : (e.data || '');
+      return `<div class="task-item" style="align-items:center">
+        <div class="task-body">
+          <div class="task-text" style="font-size:15px;font-weight:600">${e.nome}</div>
+          <div class="task-meta" style="margin-top:3px">${e.cfu} CFU${dataStr ? ' · ' + dataStr : ''}</div>
+        </div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent2);margin-left:8px;flex-shrink:0">${e.voto}${lode}</div>
+        <button class="btn-sm btn-danger" onclick="deleteEsameSuperato(${e.id})" style="margin-left:8px">✕</button>
+      </div>`;
+    }).join('');
+  } else {
+    if (!mancanti.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nessun esame da sostenere</div></div>';
+      return;
+    }
+    el.innerHTML = [...mancanti].sort((a,b) => {
+      const firstA = (a.date && a.date.length) ? a.date[0] : a;
+      const firstB = (b.date && b.date.length) ? b.date[0] : b;
+      return esameSortKey(firstB) - esameSortKey(firstA);
+    }).map(e => {
+      const dates = e.date || (e.giorno || e.mese || e.anno ? [{ giorno: e.giorno, mese: e.mese, anno: e.anno }] : []);
+      const datesStr = dates.map(d => `${d.giorno ? d.giorno + ' ' : ''}${d.mese} ${d.anno}`).join(' · ');
+      return `<div class="task-item" style="align-items:center">
+        <div class="task-body">
+          <div class="task-text" style="font-size:15px;font-weight:600">${e.nome}</div>
+          <div class="task-meta" style="margin-top:3px">${e.cfu} CFU${datesStr ? ' · ' + datesStr : ''}</div>
+        </div>
+        <button class="btn-sm" onclick="openPromoteModal(${e.id})" style="margin-left:8px;background:var(--green-bg);color:var(--green);border-color:rgba(62,207,142,0.2)">✓</button>
+        <button class="btn-sm btn-danger" onclick="deleteEsameMancante(${e.id})" style="margin-left:6px">✕</button>
+      </div>`;
+    }).join('');
+  }
+}
+
+function addEsameSuperato() {
+  const nome = document.getElementById('uni-nome-s').value.trim().toUpperCase();
+  const voto = parseInt(document.getElementById('uni-voto').value);
+  const lode = uniLode;
+  const cfu = parseInt(document.getElementById('uni-cfu-s').value);
+  const giorno = document.getElementById('uni-giorno-s').value.trim();
+  const mese = document.getElementById('uni-mese-s').value;
+  const anno = document.getElementById('uni-anno-s').value.trim();
+  if (!nome || isNaN(voto) || voto < 18 || voto > 30 || isNaN(cfu)) return;
+  state.universita.superati.push({ id: Date.now(), nome, voto, lode, cfu, giorno, mese, anno });
+  document.getElementById('uni-nome-s').value = '';
+  document.getElementById('uni-voto').value = '';
+  document.getElementById('uni-lode-check').classList.remove('checked');
+  uniLode = false;
+  document.getElementById('uni-cfu-s').value = '';
+  document.getElementById('uni-giorno-s').value = '';
+  document.getElementById('uni-anno-s').value = '';
+  haptic('success'); save(); renderUniversita();
+}
+
+let uniDateMancante = [];
+
+function addDataMancante() {
+  const giorno = document.getElementById('uni-giorno-m').value.trim();
+  const mese = document.getElementById('uni-mese-m').value;
+  const anno = document.getElementById('uni-anno-m').value.trim();
+  if (!anno) return;
+  uniDateMancante.push({ giorno, mese, anno });
+  document.getElementById('uni-giorno-m').value = '';
+  document.getElementById('uni-anno-m').value = '';
+  renderDateMancantiPreview();
+}
+
+function renderDateMancantiPreview() {
+  const el = document.getElementById('uni-date-m-list');
+  if (!uniDateMancante.length) { el.innerHTML = ''; return; }
+  el.innerHTML = uniDateMancante.map((d, i) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:13px;color:var(--text2)">
+      <span style="flex:1">${d.giorno ? d.giorno + ' ' : ''}${d.mese} ${d.anno}</span>
+      <span onclick="removeDataMancante(${i})" style="cursor:pointer;color:var(--red);font-size:12px">✕</span>
+    </div>`
+  ).join('');
+}
+
+function removeDataMancante(i) {
+  uniDateMancante.splice(i, 1);
+  renderDateMancantiPreview();
+}
+
+function addEsameMancante() {
+  const nome = document.getElementById('uni-nome-m').value.trim().toUpperCase();
+  const cfu = parseInt(document.getElementById('uni-cfu-m').value);
+  if (!nome || isNaN(cfu)) return;
+  state.universita.mancanti.push({ id: Date.now(), nome, cfu, date: [...uniDateMancante] });
+  document.getElementById('uni-nome-m').value = '';
+  document.getElementById('uni-cfu-m').value = '';
+  document.getElementById('uni-giorno-m').value = '';
+  document.getElementById('uni-anno-m').value = '';
+  uniDateMancante = [];
+  renderDateMancantiPreview();
+  haptic('medium'); save(); renderUniversita();
+}
+
+let promoteId = null;
+let promoteLode = false;
+
+let promoteSelectedDate = null;
+
+function openPromoteModal(id) {
+  promoteId = id;
+  promoteLode = false;
+  promoteSelectedDate = null;
+  const e = state.universita.mancanti.find(e => e.id === id);
+  if (!e) return;
+  document.getElementById('promote-modal-title').textContent = e.nome;
+  document.getElementById('promote-voto').value = '';
+  document.getElementById('promote-lode-check').classList.remove('checked');
+
+  // Show date options
+  const dateEl = document.getElementById('promote-date-list');
+  const dates = e.date || (e.giorno || e.mese || e.anno ? [{ giorno: e.giorno, mese: e.mese, anno: e.anno }] : []);
+  if (dates.length) {
+    dateEl.innerHTML = '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;background:none">Scegli la data</div>' +
+      dates.map((d, i) => {
+        const label = `${d.giorno ? d.giorno + ' ' : ''}${d.mese} ${d.anno}`;
+        return `<div class="promote-date-item" onclick="selectPromoteDate(${i}, this)" data-idx="${i}" style="padding:9px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer">${label}</div>`;
+      }).join('');
+    promoteSelectedDate = dates[0];
+    setTimeout(() => {
+      const first = document.querySelector('.promote-date-item');
+      if (first) { first.style.background = 'rgba(124,111,255,0.12)'; first.style.borderColor = 'var(--accent)'; first.style.color = 'var(--text)'; }
+    }, 50);
+  } else {
+    dateEl.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nessuna data specificata</div>';
+  }
+
+  document.getElementById('promote-modal').classList.add('open');
+}
+
+function selectPromoteDate(idx, el) {
+  document.querySelectorAll('.promote-date-item').forEach(d => {
+    d.style.background = 'var(--bg3)';
+    d.style.borderColor = 'var(--border)';
+    d.style.color = 'var(--text2)';
+  });
+  el.style.background = 'rgba(124,111,255,0.12)';
+  el.style.borderColor = 'var(--accent)';
+  el.style.color = 'var(--text)';
+  const e = state.universita.mancanti.find(e => e.id === promoteId);
+  const dates = e.date || [{ giorno: e.giorno, mese: e.mese, anno: e.anno }];
+  promoteSelectedDate = dates[idx];
+}
+
+function closePromoteModal(e) {
+  if (!e || e.target === document.getElementById('promote-modal'))
+    document.getElementById('promote-modal').classList.remove('open');
+}
+
+function togglePromoteLode() {
+  promoteLode = !promoteLode;
+  document.getElementById('promote-lode-check').classList.toggle('checked', promoteLode);
+}
+
+function confirmPromote() {
+  const voto = parseInt(document.getElementById('promote-voto').value);
+  if (isNaN(voto) || voto < 18 || voto > 30) return;
+  const e = state.universita.mancanti.find(e => e.id === promoteId);
+  if (!e) return;
+  const d = promoteSelectedDate || {};
+  state.universita.superati.push({ id: Date.now(), nome: e.nome, voto, lode: promoteLode, cfu: e.cfu, giorno: d.giorno, mese: d.mese, anno: d.anno });
+  state.universita.mancanti = state.universita.mancanti.filter(e => e.id !== promoteId);
+  haptic('success'); save();
+  document.getElementById('promote-modal').classList.remove('open');
+  renderUniversita();
+}
+
+function deleteEsameSuperato(id) {
+  state.universita.superati = state.universita.superati.filter(e => e.id !== id);
+  save(); renderUniversita();
+}
+
+function deleteEsameMancante(id) {
+  state.universita.mancanti = state.universita.mancanti.filter(e => e.id !== id);
+  save(); renderUniversita();
 }
 
 // HAPTIC FEEDBACK
