@@ -1713,16 +1713,24 @@ window.addEventListener('pageshow', () => {
   const activePage = document.querySelector('.page.active');
   if (activePage) setActiveNav(activePage.id.replace('page-', ''));
 });
-// Hide nav when iOS keyboard appears
+// Hide nav when iOS keyboard appears, show when closes
 if (window.visualViewport) {
   let lastHeight = window.visualViewport.height;
+  let showTimer = null;
   window.visualViewport.addEventListener('resize', () => {
     const nav = document.querySelector('.nav');
     const currentHeight = window.visualViewport.height;
     if (currentHeight < lastHeight - 100) {
+      // Keyboard appeared — hide nav immediately
+      if (showTimer) { clearTimeout(showTimer); showTimer = null; }
       nav.style.display = 'none';
-    } else {
-      nav.style.display = 'flex';
+    } else if (nav.style.display === 'none') {
+      // Keyboard closing — wait for viewport to fully settle before showing
+      if (showTimer) clearTimeout(showTimer);
+      showTimer = setTimeout(() => {
+        nav.style.display = 'flex';
+        showTimer = null;
+      }, 350);
     }
     lastHeight = currentHeight;
   });
