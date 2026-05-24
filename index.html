@@ -1708,11 +1708,11 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   }, { passive: false });
 });
 
-// Service worker disabilitato per aggiornamenti immediati
+// Service worker con strategia network-first per aggiornamenti automatici
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.update(); // controlla aggiornamenti ad ogni apertura
+  }).catch(() => {});
 }
 </script>
 </body>
