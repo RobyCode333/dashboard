@@ -1708,6 +1708,12 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   }, { passive: false });
 });
 
+// Force viewport recalculation on load to fix safe area
+requestAnimationFrame(() => {
+  window.scrollTo(0, 1);
+  setTimeout(() => window.scrollTo(0, 0), 50);
+});
+
 // iOS PWA: reapply nav state when app resumes from cache
 window.addEventListener('pageshow', () => {
   const activePage = document.querySelector('.page.active');
