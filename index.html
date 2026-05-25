@@ -743,9 +743,12 @@ select option { background: var(--bg3); }
       <div class="stat-label">Media voti</div>
       <div class="stat-value" id="uni-media" style="color:var(--accent2)">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">CFU acquisiti</div>
-      <div class="stat-value" id="uni-cfu" style="color:var(--green)">0</div>
+    <div class="stat-card" style="text-align:center">
+      <div class="stat-label">CFU</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px">
+        <div class="stat-value" id="uni-cfu" style="color:var(--green)">0</div>
+        <div class="stat-value" id="uni-cfu-mancanti" style="color:var(--red)">0</div>
+      </div>
     </div>
   </div>
 
@@ -1249,9 +1252,16 @@ function renderGruppi() {
   }
   el.innerHTML = s.gruppi.map(g => {
     const esercizi = g.esercizi || [];
+    const ultimoAllenamento = g.ultimoAllenamento || null;
+    const isOggi = ultimoAllenamento === dateStr();
     return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${esercizi.length?'12px':'0'}">
-        <div style="font-size:14px;font-weight:700">${g.nome}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="task-check ${isOggi?'checked':''}" onclick="logGruppo(${g.id})" style="cursor:pointer;flex-shrink:0" title="${isOggi?'Allenato oggi':'Segna come allenato'}"></div>
+          <div>
+            <div style="font-size:14px;font-weight:700">${g.nome}</div>
+          </div>
+        </div>
         <div style="display:flex;gap:6px">
           <button class="btn-sm" onclick="openEsercizioModal(${g.id})">Modifica</button>
           <button class="btn-sm btn-danger" onclick="deleteGruppo(${g.id})">✕</button>
@@ -1288,6 +1298,14 @@ function eseguiEsercizio(gruppoId, esercizioId) {
   const primo = g.esercizi.shift();
   g.esercizi.push(primo);
   save(); renderGruppi();
+}
+
+function logGruppo(gruppoId) {
+  const s = getSeduta();
+  const g = s && s.gruppi.find(gr => gr.id === gruppoId);
+  if (!g) return;
+  g.ultimoAllenamento = g.ultimoAllenamento === dateStr() ? null : dateStr();
+  haptic('success'); save(); renderGruppi();
 }
 
 // GRUPPI
@@ -1784,9 +1802,11 @@ function renderUniversita() {
 
   // Media e CFU
   const cfuTot = superati.reduce((a, e) => a + (e.cfu || 0), 0);
+  const cfuMancanti = mancanti.reduce((a, e) => a + (e.cfu || 0), 0);
   const media = superati.length ? (superati.reduce((a, e) => a + (e.voto * (e.cfu || 1)), 0) / (cfuTot || superati.length)).toFixed(2) : '—';
   document.getElementById('uni-media').textContent = media;
   document.getElementById('uni-cfu').textContent = cfuTot;
+  document.getElementById('uni-cfu-mancanti').textContent = cfuMancanti;
 
   const el = document.getElementById('uni-list');
 
@@ -1820,11 +1840,7 @@ function renderUniversita() {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nessun esame da sostenere</div></div>';
       return;
     }
-    el.innerHTML = [...mancanti].sort((a,b) => {
-      const firstA = (a.date && a.date.length) ? a.date[0] : a;
-      const firstB = (b.date && b.date.length) ? b.date[0] : b;
-      return esameSortKey(firstB) - esameSortKey(firstA);
-    }).map(e => {
+    el.innerHTML = [...mancanti].sort((a,b) => a.id - b.id).map(e => {
       const dates = e.date || (e.giorno || e.mese || e.anno ? [{ giorno: e.giorno, mese: e.mese, anno: e.anno }] : []);
       const datesStr = dates.map(d => `${d.giorno ? d.giorno + ' ' : ''}${d.mese} ${d.anno}`).join(' · ');
       return `<div class="task-item" style="align-items:center">
