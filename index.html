@@ -1083,7 +1083,7 @@ function taskHTML(t, mini = false) {
       <div class="task-text" style="font-size:13px;font-weight:600">${t.text}</div>
       <div class="task-meta" style="margin-top:3px">${prioEmoji}${giornoLabel ? '  ' + giornoLabel : ''}</div>
     </div>
-    <span class="tipo-badge ${tipoClass}" style="flex-shrink:0;align-self:center;margin-left:8px">${tipoEmoji} ${tipoLabel}</span>
+    <span class="tipo-badge ${tipoClass}" style="flex-shrink:0;align-self:center;margin-left:8px">${tipoEmoji}</span>
     ${!mini ? `<div class="task-actions" style="flex-shrink:0;display:flex;gap:4px">
       <button class="btn-sm" onclick="openEditTask(${t.id})" style="padding:4px 7px">✏️</button>
       <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteTask(${t.id}))">✕</button>
