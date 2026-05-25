@@ -671,6 +671,15 @@ select option { background: var(--bg3); }
     </div>
   </div>
 </div>
+<!-- MODAL ASSEGNA GRUPPO MUSCOLARE -->
+<div class="modal-overlay" id="assegna-modal" style="z-index:300">
+  <div class="modal">
+    <div class="modal-title">GRUPPI</div>
+    <div id="assegna-sottosedute-list"></div>
+    <button class="btn" onclick="assegnaASottoSeduta()" style="width:100%;margin-top:8px">Assegna</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="seduta-modal" onclick="closeSedutaModal(event)">
   <div class="modal">
     <div class="modal-title">Nuova seduta</div>
@@ -687,10 +696,24 @@ select option { background: var(--bg3); }
   <div class="modal" style="max-height:88vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div class="modal-title" id="seduta-detail-title" style="margin:0">Seduta</div>
-      <button onclick="closeSedutaDetailModal()" style="width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-sm" onclick="openNuovaSottoSedutaModal()">+ Gruppo muscolare</button>
+        <button onclick="closeSedutaDetailModal()" style="width:32px;height:32px;border-radius:50%;background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
     </div>
     <div id="seduta-gruppi-list"></div>
     <button class="btn" style="width:100%;margin-top:8px" onclick="openGruppoModal()">+ Gruppo esercizi</button>
+  </div>
+</div>
+
+<!-- MODAL NUOVO GRUPPO MUSCOLARE -->
+<div class="modal-overlay" id="nuova-sottoseduta-modal" onclick="closeNuovaSottoSedutaModal(event)" style="z-index:300">
+  <div class="modal">
+    <div class="modal-title">Nuovo gruppo muscolare</div>
+    <input type="text" id="nuova-sottoseduta-nome" placeholder="Es. Petto, Schiena, Gambe...">
+    <div class="modal-btns">
+      <button class="btn" onclick="saveNuovaSottoSeduta()" style="width:100%">Crea</button>
+    </div>
   </div>
 </div>
 
@@ -1243,6 +1266,38 @@ function closeSedutaDetailModal(e) {
   }
 }
 
+function gruppoHTML(g) {
+  const esercizi = g.esercizi || [];
+  const isOggi = g.ultimoAllenamento === dateStr();
+  return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${esercizi.length?'12px':'0'}">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="task-check ${isOggi?'checked':''}" onclick="logGruppo(${g.id})" style="cursor:pointer;flex-shrink:0"></div>
+        <div style="font-size:14px;font-weight:700">${g.nome}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" onclick="openAssegnaModal(${g.id})" style="padding:4px 8px;letter-spacing:0.1em">···</button>
+        <button class="btn-sm" onclick="openEsercizioModal(${g.id})">Modifica</button>
+        <button class="btn-sm btn-danger" onclick="deleteGruppo(${g.id})">✕</button>
+      </div>
+    </div>
+    ${esercizi.length ? `
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${esercizi.map((e, i) => {
+          const isNext = i === 0;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${isNext?'rgba(124,111,255,0.1)':'var(--bg3)'};border-radius:10px;border:1px solid ${isNext?'var(--accent)':'transparent'}">
+            <div style="width:20px;height:20px;border-radius:50%;background:${isNext?'var(--accent)':'var(--bg4)'};color:${isNext?'white':'var(--text3)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:${isNext?'700':'500'};color:${isNext?'var(--text)':'var(--text2)'}">${e.nome}</div>
+              <div style="font-size:11px;color:var(--accent2);font-weight:600;margin-top:1px">${e.serie}×${e.rip} @ ${e.peso}kg</div>
+            </div>
+            ${isNext ? `<div class="task-check" onclick="eseguiEsercizio(${g.id},${e.id})" style="cursor:pointer;flex-shrink:0"></div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>` : '<div style="font-size:12px;color:var(--text3)">Nessun esercizio nel gruppo</div>'}
+  </div>`;
+}
+
 function renderGruppi() {
   const s = getSeduta();
   const el = document.getElementById('seduta-gruppi-list');
@@ -1250,40 +1305,36 @@ function renderGruppi() {
     el.innerHTML = '<div style="font-size:13px;color:var(--text3);margin-bottom:12px">Nessun gruppo. Aggiungine uno!</div>';
     return;
   }
-  el.innerHTML = s.gruppi.map(g => {
-    const esercizi = g.esercizi || [];
-    const ultimoAllenamento = g.ultimoAllenamento || null;
-    const isOggi = ultimoAllenamento === dateStr();
-    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${esercizi.length?'12px':'0'}">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="task-check ${isOggi?'checked':''}" onclick="logGruppo(${g.id})" style="cursor:pointer;flex-shrink:0" title="${isOggi?'Allenato oggi':'Segna come allenato'}"></div>
-          <div>
-            <div style="font-size:14px;font-weight:700">${g.nome}</div>
-          </div>
+
+  const sottoSedute = s.sottoSedute || [];
+  const gruppiAssegnati = new Set(sottoSedute.flatMap(ss => ss.gruppiIds || []));
+  const gruppiLiberi = s.gruppi.filter(g => !gruppiAssegnati.has(g.id));
+
+  let html = '';
+
+  // Sotto-sedute come accordion
+  sottoSedute.forEach(ss => {
+    const gruppiSS = (ss.gruppiIds || []).map(id => s.gruppi.find(g => g.id === id)).filter(Boolean);
+    const isOpen = ss.open !== false;
+    html += `<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);margin-bottom:10px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px;flex:1" onclick="toggleSottoSeduta(${ss.id})">
+          <span style="color:var(--text3);font-size:12px">${isOpen?'▲':'▼'}</span>
+          <div style="font-size:13px;font-weight:700;color:var(--accent2)">${ss.nome}</div>
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-sm" onclick="openEsercizioModal(${g.id})">Modifica</button>
-          <button class="btn-sm btn-danger" onclick="deleteGruppo(${g.id})">✕</button>
-        </div>
+        <button class="btn-sm btn-danger" onclick="event.stopPropagation();deleteSottoSeduta(${ss.id})">✕</button>
       </div>
-      ${esercizi.length ? `
-        <div style="display:flex;flex-direction:column;gap:6px">
-          ${esercizi.map((e, i) => {
-            const isNext = i === 0;
-            const lastLog = (g.log||[]).filter(l => l.esercizioId === e.id).slice(-1)[0];
-            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${isNext?'rgba(124,111,255,0.1)':'var(--bg3)'};border-radius:10px;border:1px solid ${isNext?'var(--accent)':'transparent'}">
-              <div style="width:20px;height:20px;border-radius:50%;background:${isNext?'var(--accent)':'var(--bg4)'};color:${isNext?'white':'var(--text3)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:${isNext?'700':'500'};color:${isNext?'var(--text)':'var(--text2)'}">${e.nome}</div>
-                <div style="font-size:11px;color:var(--accent2);font-weight:600;margin-top:1px">${e.serie}×${e.rip} @ ${e.peso}kg</div>
-              </div>
-              ${isNext ? `<div class="task-check" onclick="eseguiEsercizio(${g.id},${e.id})" style="cursor:pointer;flex-shrink:0" title="Segna come fatto"></div>` : ''}
-            </div>`;
-          }).join('')}
-        </div>` : '<div style="font-size:12px;color:var(--text3)">Nessun esercizio nel gruppo</div>'}
+      ${isOpen ? `<div style="padding:0 12px 12px">${gruppiSS.length ? gruppiSS.map(g => gruppoHTML(g)).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">Nessun gruppo assegnato</div>'}</div>` : ''}
     </div>`;
-  }).join('');
+  });
+
+  // Gruppi liberi
+  if (gruppiLiberi.length) {
+    if (sottoSedute.length) html += `<div class="section-title" style="margin:16px 0 10px">Gruppi non assegnati</div>`;
+    html += gruppiLiberi.map(g => gruppoHTML(g)).join('');
+  }
+
+  el.innerHTML = html;
 }
 
 function eseguiEsercizio(gruppoId, esercizioId) {
@@ -1306,6 +1357,100 @@ function logGruppo(gruppoId) {
   if (!g) return;
   g.ultimoAllenamento = g.ultimoAllenamento === dateStr() ? null : dateStr();
   haptic('success'); save(); renderGruppi();
+}
+
+// SOTTO-SEDUTE
+let assegnaGruppoId = null;
+
+function openNuovaSottoSedutaModal() {
+  document.getElementById('nuova-sottoseduta-nome').value = '';
+  const el = document.getElementById('nuova-sottoseduta-modal');
+  el.classList.add('open'); el.style.display = 'flex';
+}
+
+function closeNuovaSottoSedutaModal(e) {
+  if (!e || e.target === document.getElementById('nuova-sottoseduta-modal'))
+    document.getElementById('nuova-sottoseduta-modal').classList.remove('open');
+}
+
+function saveNuovaSottoSeduta() {
+  const nome = document.getElementById('nuova-sottoseduta-nome').value.trim();
+  if (!nome) return;
+  const s = getSeduta();
+  if (!s) return;
+  if (!s.sottoSedute) s.sottoSedute = [];
+  s.sottoSedute.push({ id: Date.now(), nome, gruppiIds: [], open: true });
+  haptic('success'); save();
+  const el = document.getElementById('nuova-sottoseduta-modal');
+  el.classList.remove('open');
+  el.style.display = '';
+  renderGruppi();
+}
+
+function toggleSottoSeduta(ssId) {
+  const s = getSeduta();
+  if (!s) return;
+  const ss = (s.sottoSedute || []).find(x => x.id === ssId);
+  if (ss) { ss.open = ss.open === false ? true : false; save(); renderGruppi(); }
+}
+
+function deleteSottoSeduta(ssId) {
+  const s = getSeduta();
+  if (!s) return;
+  s.sottoSedute = (s.sottoSedute || []).filter(x => x.id !== ssId);
+  save(); renderGruppi();
+}
+
+let selectedSsId = null;
+
+function openAssegnaModal(gruppoId) {
+  assegnaGruppoId = gruppoId;
+  selectedSsId = null;
+  const s = getSeduta();
+  if (!s) return;
+  const sottoSedute = s.sottoSedute || [];
+  // Pre-select current assignment
+  for (const ss of sottoSedute) {
+    if ((ss.gruppiIds||[]).includes(gruppoId)) { selectedSsId = ss.id; break; }
+  }
+  renderAssegnaList(sottoSedute, gruppoId);
+  document.getElementById('assegna-modal').style.display = 'flex';
+}
+
+function renderAssegnaList(sottoSedute, gruppoId) {
+  const listEl = document.getElementById('assegna-sottosedute-list');
+  if (!sottoSedute || !sottoSedute.length) {
+    listEl.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:8px 0 12px">Nessun gruppo muscolare. Creane uno con "+ Gruppo muscolare".</div>';
+    return;
+  }
+  listEl.innerHTML = sottoSedute.map(ss => {
+    const isSelected = selectedSsId === ss.id;
+    return '<div onclick="selectSottoSeduta(' + ss.id + ')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:' + (isSelected?'rgba(124,111,255,0.1)':'var(--bg3)') + ';border:1px solid ' + (isSelected?'var(--accent)':'var(--border)') + ';border-radius:10px;margin-bottom:8px;cursor:pointer"><div style="width:20px;height:20px;border-radius:6px;background:' + (isSelected?'var(--accent)':'var(--bg4)') + ';border:1.5px solid ' + (isSelected?'var(--accent)':'var(--border2)') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s">' + (isSelected?'<span style="color:#0a0a0f;font-size:12px;font-weight:700">✓</span>':'') + '</div><div style="font-size:13px;font-weight:600;color:' + (isSelected?'var(--text)':'var(--text2)') + '">' + ss.nome + '</div></div>';
+  }).join('');
+}
+
+function selectSottoSeduta(ssId) {
+  selectedSsId = selectedSsId === ssId ? null : ssId;
+  const s = getSeduta();
+  if (s) renderAssegnaList(s.sottoSedute || [], assegnaGruppoId);
+}
+
+function closeAssegnaModal() {
+  document.getElementById('assegna-modal').style.display = 'none';
+  renderGruppi();
+}
+
+function assegnaASottoSeduta() {
+  if (!selectedSsId) return;
+  const s = getSeduta();
+  if (!s) return;
+  if (!s.sottoSedute) s.sottoSedute = [];
+  s.sottoSedute.forEach(ss => { ss.gruppiIds = (ss.gruppiIds||[]).filter(id => id !== assegnaGruppoId); });
+  const ss = s.sottoSedute.find(x => x.id === selectedSsId);
+  if (ss) { if (!ss.gruppiIds) ss.gruppiIds = []; ss.gruppiIds.push(assegnaGruppoId); }
+  haptic('medium'); save();
+  document.getElementById('assegna-modal').style.display = 'none';
+  renderGruppi();
 }
 
 // GRUPPI
