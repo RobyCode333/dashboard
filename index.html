@@ -336,7 +336,6 @@ select option { background: var(--bg3); }
 /* NOTE EDITOR */
 .nota-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; }
 .nota-editor.open { display: flex; animation: fadeUp 0.22s ease; }
-.nota-editor.closing { display: flex; animation: fadeDown 0.2s ease forwards; pointer-events: none; }
 
 .editor-header {
   display: flex;
@@ -484,6 +483,39 @@ select option { background: var(--bg3); }
   </div>
 </div>
 
+<!-- MODAL MODIFICA TASK -->
+<div class="modal-overlay" id="edit-task-modal" onclick="closeEditTask(event)">
+  <div class="modal">
+    <div class="modal-title">Modifica task</div>
+    <input type="text" id="edit-task-text" placeholder="Nome task" maxlength="120">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input type="number" id="edit-task-giorno" placeholder="Giorno" min="1" max="31" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;padding:10px 10px;outline:none">
+      <select id="edit-task-mese" style="flex:1.4;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;padding:10px 8px;outline:none">
+        <option value="0">Gennaio</option><option value="1">Febbraio</option><option value="2">Marzo</option>
+        <option value="3">Aprile</option><option value="4">Maggio</option><option value="5">Giugno</option>
+        <option value="6">Luglio</option><option value="7">Agosto</option><option value="8">Settembre</option>
+        <option value="9">Ottobre</option><option value="10">Novembre</option><option value="11">Dicembre</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeEditTask()">Annulla</button>
+      <button class="btn" onclick="saveEditTask()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFERMA ELIMINAZIONE -->
+<div id="confirm-delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--border);padding:20px 16px;width:100%;max-width:500px;padding-bottom:max(20px,env(safe-area-inset-bottom))">
+    <div style="font-size:15px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px">Eliminare questo elemento?</div>
+    <div style="font-size:13px;color:var(--text3);text-align:center;margin-bottom:16px">L'operazione non può essere annullata.</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="cancelDelete()" style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;padding:12px">Annulla</button>
+      <button onclick="confirmDelete()" style="flex:1;background:var(--red);border:none;border-radius:10px;color:white;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;padding:12px">Elimina</button>
+    </div>
+  </div>
+</div>
+
 <!-- TASK -->
 <div class="page" id="page-task">
 <div class="page-header">
@@ -571,7 +603,7 @@ select option { background: var(--bg3); }
     <select id="pal-prog-select" onchange="cambiaProgramma(this.value)" style="flex:1">
       <option value="">— Nessun programma —</option>
     </select>
-    <button class="btn-sm btn-danger" id="pal-delete-prog-btn" onclick="deleteProgramma()" style="display:none">✕</button>
+    <button class="btn-sm btn-danger" id="pal-delete-prog-btn" onclick="askDelete(()=>deleteProgramma())" style="display:none">✕</button>
   </div>
   <div class="input-row">
     <input type="text" id="pal-nuovo-prog" placeholder="Nuovo programma..." maxlength="60">
@@ -995,6 +1027,37 @@ function toggleTask(id) {
   if (t) { t.done = !t.done; haptic(t.done ? 'success' : 'light'); save(); renderTasks(); renderHome(); }
 }
 
+let editTaskId = null;
+
+function openEditTask(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if (!t) return;
+  editTaskId = id;
+  document.getElementById('edit-task-text').value = t.text;
+  document.getElementById('edit-task-giorno').value = t.giorno || '';
+  document.getElementById('edit-task-mese').value = t.mese ?? new Date().getMonth();
+  document.getElementById('edit-task-modal').classList.add('open');
+}
+
+function closeEditTask(e) {
+  if (!e || e.target === document.getElementById('edit-task-modal'))
+    document.getElementById('edit-task-modal').classList.remove('open');
+}
+
+function saveEditTask() {
+  const t = state.tasks.find(t => t.id === editTaskId);
+  if (!t) return;
+  const text = document.getElementById('edit-task-text').value.trim();
+  if (!text) return;
+  const giorno = parseInt(document.getElementById('edit-task-giorno').value);
+  t.text = text;
+  t.giorno = (!isNaN(giorno) && giorno >= 1 && giorno <= 31) ? giorno : null;
+  t.mese = parseInt(document.getElementById('edit-task-mese').value);
+  haptic('medium'); save();
+  document.getElementById('edit-task-modal').classList.remove('open');
+  renderTasks(); renderHome();
+}
+
 function deleteTask(id) { state.tasks = state.tasks.filter(t => t.id !== id); save(); renderTasks(); renderHome(); }
 
 function filterTasks(f, el) {
@@ -1017,11 +1080,14 @@ function taskHTML(t, mini = false) {
   return `<div class="task-item ${t.done ? 'done' : ''}" style="align-items:center">
     <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})" style="flex-shrink:0;align-self:center"></div>
     <div class="task-body">
-      <div class="task-text" style="font-size:15px;font-weight:600">${t.text}</div>
+      <div class="task-text" style="font-size:13px;font-weight:600">${t.text}</div>
       <div class="task-meta" style="margin-top:3px">${prioEmoji}${giornoLabel ? '  ' + giornoLabel : ''}</div>
     </div>
     <span class="tipo-badge ${tipoClass}" style="flex-shrink:0;align-self:center;margin-left:8px">${tipoEmoji} ${tipoLabel}</span>
-    ${!mini ? `<div class="task-actions" style="flex-shrink:0"><button class="btn-sm btn-danger" onclick="deleteTask(${t.id})">✕</button></div>` : ''}
+    ${!mini ? `<div class="task-actions" style="flex-shrink:0;display:flex;gap:4px">
+      <button class="btn-sm" onclick="openEditTask(${t.id})" style="padding:4px 7px">✏️</button>
+      <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteTask(${t.id}))">✕</button>
+    </div>` : ''}
   </div>`;
 }
 
@@ -1152,7 +1218,7 @@ function renderSpese() {
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="spesa-amount ${isE ? 'entrata' : ''}">${isE ? '+' : '-'}€${s.amount.toFixed(2)}</div>
-        <button class="btn-sm btn-danger" onclick="deleteSpesa(${s.id})">✕</button>
+        <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteSpesa(${s.id}))">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -1195,7 +1261,7 @@ function renderSedute(prog) {
         <div style="font-size:17px;font-weight:700;line-height:1">${s.nome}</div>
         <div style="display:flex;gap:8px">
           <button class="btn-sm" onclick="openSedutaDetail(${prog.id},${s.id})">Apri</button>
-          <button class="btn-sm btn-danger" onclick="deleteSeduta(${prog.id},${s.id})">✕</button>
+          <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteSeduta(${prog.id},${s.id}))">✕</button>
         </div>
       </div>
     </div>`).join('');
@@ -1278,7 +1344,7 @@ function gruppoHTML(g) {
       <div style="display:flex;gap:6px">
         <button class="btn-sm" onclick="openAssegnaModal(${g.id})" style="padding:4px 8px;letter-spacing:0.1em">···</button>
         <button class="btn-sm" onclick="openEsercizioModal(${g.id})">Modifica</button>
-        <button class="btn-sm btn-danger" onclick="deleteGruppo(${g.id})">✕</button>
+        <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteGruppo(${g.id}))">✕</button>
       </div>
     </div>
     ${esercizi.length ? `
@@ -1322,7 +1388,7 @@ function renderGruppi() {
           <span style="color:var(--text3);font-size:12px">${isOpen?'▲':'▼'}</span>
           <div style="font-size:13px;font-weight:700;color:var(--accent2)">${ss.nome}</div>
         </div>
-        <button class="btn-sm btn-danger" onclick="event.stopPropagation();deleteSottoSeduta(${ss.id})">✕</button>
+        <button class="btn-sm btn-danger" onclick="event.stopPropagation();askDelete(()=>deleteSottoSeduta(${ss.id}))">✕</button>
       </div>
       ${isOpen ? `<div style="padding:0 12px 12px">${gruppiSS.length ? gruppiSS.map(g => gruppoHTML(g)).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">Nessun gruppo assegnato</div>'}</div>` : ''}
     </div>`;
@@ -1520,7 +1586,7 @@ function renderEsercizioList() {
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0">
           <button class="btn-sm" onclick="toggleEditEsercizio(${e.id})" style="padding:4px 7px">✏️</button>
-          <button class="btn-sm btn-danger" onclick="deleteEsercizio(${i})" style="padding:4px 7px">✕</button>
+          <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteEsercizio(${i}))" style="padding:4px 7px">✕</button>
         </div>
       </div>
       <div id="es-edit-${e.id}" style="display:none;padding:0 12px 12px;border-top:1px solid var(--border)">
@@ -1699,7 +1765,7 @@ function renderDieta() {
           <div class="task-text">${p.valore} kg</div>
           <div class="task-meta">${p.giorno === now.getDate() && p.month === now.getMonth() && p.year === now.getFullYear() ? 'oggi' : p.data}</div>
         </div>
-        <button class="btn-sm btn-danger" onclick="deletePeso(${p.id})">✕</button>
+        <button class="btn-sm btn-danger" onclick="askDelete(()=>deletePeso(${p.id}))">✕</button>
       </div>`).join('');
   }
 
@@ -1716,7 +1782,7 @@ function renderDieta() {
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <button class="btn-sm" onclick="toggleAlimenti(${d.id})">📋 Alimenti</button>
-            <button class="btn-sm btn-danger" onclick="deleteDieta(${d.id})">✕</button>
+            <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteDieta(${d.id}))">✕</button>
           </div>
         </div>
         <div id="alimenti-${d.id}" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
@@ -1977,7 +2043,7 @@ function renderUniversita() {
           <div class="task-meta" style="margin-top:3px">${e.cfu} CFU${dataStr ? ' · ' + dataStr : ''}</div>
         </div>
         <div style="font-size:20px;font-weight:800;color:var(--accent2);margin-left:8px;flex-shrink:0">${e.voto}${lode}</div>
-        <button class="btn-sm btn-danger" onclick="deleteEsameSuperato(${e.id})" style="margin-left:8px">✕</button>
+        <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteEsameSuperato(${e.id}))" style="margin-left:8px">✕</button>
       </div>`;
     }).join('');
   } else {
@@ -1994,7 +2060,7 @@ function renderUniversita() {
           <div class="task-meta" style="margin-top:3px">${e.cfu} CFU${datesStr ? ' · ' + datesStr : ''}</div>
         </div>
         <button class="btn-sm" onclick="openPromoteModal(${e.id})" style="margin-left:8px;background:var(--green-bg);color:var(--green);border-color:rgba(62,207,142,0.2)">✓</button>
-        <button class="btn-sm btn-danger" onclick="deleteEsameMancante(${e.id})" style="margin-left:6px">✕</button>
+        <button class="btn-sm btn-danger" onclick="askDelete(()=>deleteEsameMancante(${e.id}))" style="margin-left:6px">✕</button>
       </div>`;
     }).join('');
   }
@@ -2144,6 +2210,25 @@ function deleteEsameSuperato(id) {
 function deleteEsameMancante(id) {
   state.universita.mancanti = state.universita.mancanti.filter(e => e.id !== id);
   save(); renderUniversita();
+}
+
+// CONFERMA ELIMINAZIONE GLOBALE
+let pendingDeleteFn = null;
+
+function askDelete(fn) {
+  pendingDeleteFn = fn;
+  const modal = document.getElementById('confirm-delete-modal');
+  modal.style.display = 'flex';
+}
+
+function confirmDelete() {
+  document.getElementById('confirm-delete-modal').style.display = 'none';
+  if (pendingDeleteFn) { pendingDeleteFn(); pendingDeleteFn = null; }
+}
+
+function cancelDelete() {
+  document.getElementById('confirm-delete-modal').style.display = 'none';
+  pendingDeleteFn = null;
 }
 
 // HAPTIC FEEDBACK
