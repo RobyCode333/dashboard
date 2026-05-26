@@ -416,6 +416,9 @@ select option { background: var(--bg3); }
   cursor: pointer;
   letter-spacing: 0.03em;
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .chip.active { background: var(--accent); border-color: var(--accent); color: white; }
 
@@ -524,8 +527,8 @@ select option { background: var(--bg3); }
   <div class="input-row">
     <input type="text" id="task-input" placeholder="Cosa devi fare?" maxlength="120">
     <select id="task-prio" style="flex:0.5">
-      <option value="alta">🔴</option>
-      <option value="media" selected>🟡</option>
+      <option value="alta">🔴 Priorità alta</option>
+      <option value="media" selected>🟡 Priorità normale</option>
     </select>
     <select id="task-tipo" style="flex:1">
       <option value="universita">🎓 Uni</option>
@@ -552,10 +555,11 @@ select option { background: var(--bg3); }
     <button class="btn" onclick="addTask()">+</button>
   </div>
   <div id="task-filter-chips" style="display:flex;gap:5px;margin-bottom:8px">
-    <div class="chip active" onclick="filterTasks('tutti',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">Tutti</div>
-    <div class="chip" onclick="filterTasks('alta',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">🔴 Alta</div>
-    <div class="chip" onclick="filterTasks('media',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">🟡 Normale</div>
-    <div class="chip" onclick="filterTasks('done',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px">Completati</div>
+    <div class="chip active" onclick="filterTasks('tutti',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px;display:flex;align-items:center;justify-content:center">Tutti</div>
+    <div class="chip" onclick="filterTasks('universita',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:14px;display:flex;align-items:center;justify-content:center">🎓</div>
+    <div class="chip" onclick="filterTasks('trading',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:14px;display:flex;align-items:center;justify-content:center">📈</div>
+    <div class="chip" onclick="filterTasks('altro',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:14px;display:flex;align-items:center;justify-content:center">📦</div>
+    <div class="chip" onclick="filterTasks('done',this)" style="flex:1;text-align:center;padding:5px 2px;font-size:10px;display:flex;align-items:center;justify-content:center">Completati</div>
   </div>
 </div>
 <div class="page-list">
@@ -996,9 +1000,31 @@ function renderHome() {
   }
 
   const tl = document.getElementById('home-tasks-list');
-  const topTasks = state.tasks.filter(t => !t.done && t.priority === 'alta' && t.giorno === oggi && (t.mese ?? meseCorrente) === meseCorrente).slice(0, 3);
-  tl.innerHTML = topTasks.length ? topTasks.map(t => taskHTML(t, true)).join('') :
-    '<div class="empty" style="padding:24px 0"><div class="empty-text">Nessun task urgente</div></div>';
+  const urgenti = state.tasks
+    .filter(t => !t.done && t.priority === 'alta' && t.giorno === oggi && (t.mese ?? meseCorrente) === meseCorrente)
+    .sort((a, b) => ((a.mese??meseCorrente)*100+(a.giorno??0)) - ((b.mese??meseCorrente)*100+(b.giorno??0)));
+
+  if (!urgenti.length) {
+    tl.innerHTML = '<div class="empty" style="padding:24px 0"><div class="empty-text">Nessun task urgente</div></div>';
+  } else {
+    const categorie = [
+      { key: 'universita', label: 'Università', emoji: '🎓' },
+      { key: 'trading', label: 'Trading', emoji: '📈' },
+      { key: 'altro', label: 'Altro', emoji: '📦' },
+    ];
+    let html = '';
+    categorie.forEach(cat => {
+      const catTasks = urgenti.filter(t => t.tipo === cat.key);
+      if (!catTasks.length) return;
+      html += `<div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px">
+        <div style="flex:1;height:1px;background:var(--border2)"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);padding:0 4px">${cat.emoji} ${cat.label}</div>
+        <div style="flex:1;height:1px;background:var(--border2)"></div>
+      </div>`;
+      html += catTasks.map(t => taskHTML(t, true)).join('');
+    });
+    tl.innerHTML = html;
+  }
 }
 
 // TASKS
@@ -1095,19 +1121,22 @@ function renderTasks() {
   const now = new Date();
   const oggi = now.getDate();
   const meseCorrente = now.getMonth();
-  // Set default mese select
   const meseEl = document.getElementById('task-mese');
   if (meseEl && !meseEl.dataset.set) { meseEl.value = meseCorrente; meseEl.dataset.set = '1'; }
+
   let tasks = [...state.tasks];
   if (taskFilter === 'done') tasks = tasks.filter(t => t.done);
   else if (taskFilter === 'tutti') tasks = tasks.filter(t => !t.done);
-  else tasks = tasks.filter(t => t.priority === taskFilter && !t.done);
+  else if (taskFilter === 'alta' || taskFilter === 'media') tasks = tasks.filter(t => t.priority === taskFilter && !t.done);
+  else if (['universita','trading','altro'].includes(taskFilter)) tasks = tasks.filter(t => t.tipo === taskFilter && !t.done);
 
-  tasks.sort((a, b) => {
-    const ma = a.mese ?? meseCorrente, mb = b.mese ?? meseCorrente;
-    if (ma !== mb) return mb - ma;
-    return (b.giorno ?? 0) - (a.giorno ?? 0);
-  });
+  // Sort: closest date first (ascending)
+  const taskSortKey = t => {
+    const m = t.mese ?? meseCorrente;
+    const g = t.giorno ?? 0;
+    return m * 100 + g;
+  };
+  tasks.sort((a, b) => taskSortKey(a) - taskSortKey(b));
 
   const el = document.getElementById('task-list');
   if (!tasks.length) {
@@ -1126,6 +1155,9 @@ function renderTasks() {
 
   const odierni = tasks.filter(t => !isArretrato(t));
   const arretrati = tasks.filter(t => isArretrato(t));
+
+  // Arretrati: most recent first (descending)
+  arretrati.sort((a, b) => taskSortKey(b) - taskSortKey(a));
 
   let html = odierni.map(t => taskHTML(t)).join('');
   if (arretrati.length) {
