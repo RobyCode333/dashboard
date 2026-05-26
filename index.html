@@ -157,8 +157,6 @@ body {
   to { opacity: 0; transform: translateY(10px); }
 }
 
-.nota-editor.closing { animation: fadeDown 0.2s ease forwards; }
-
 /* SECTION TITLE */
 .section-title {
   font-size: 13px;
@@ -336,6 +334,7 @@ select option { background: var(--bg3); }
 /* NOTE EDITOR */
 .nota-editor { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; flex-direction: column; }
 .nota-editor.open { display: flex; animation: fadeUp 0.22s ease; }
+.nota-editor.closing { animation: fadeDown 0.2s ease forwards; }
 
 .editor-header {
   display: flex;
@@ -458,11 +457,48 @@ select option { background: var(--bg3); }
 <div class="page-list">
   <div id="home-tasks-list"></div>
 </div>
-<div style="flex-shrink:0;display:flex;justify-content:flex-end;padding:10px 16px">
+<div style="flex-shrink:0;display:flex;justify-content:space-between;padding:10px 16px">
+  <button onclick="openMais()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;padding:7px 16px;display:flex;align-items:center;gap:6px">
+    🌽
+  </button>
   <button onclick="openNote()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;color:var(--text2);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.08em;padding:7px 16px;display:flex;align-items:center;gap:6px">
     📝 <span>Note</span>
   </button>
 </div>
+</div>
+
+<!-- MAIS EDITOR -->
+<div class="nota-editor" id="mais-editor">
+  <div class="editor-header" style="justify-content:center;position:relative">
+    <button class="editor-back" onclick="closeMais()" style="position:absolute;left:16px">← Chiudi</button>
+    <div style="font-family:var(--font);font-size:18px;font-weight:800;color:var(--text);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:6px;text-decoration-thickness:2px;letter-spacing:0.04em">🌽</div>
+  </div>
+
+  <!-- Spunta oggi -->
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px 16px;gap:10px">
+    <div id="mais-check" onclick="toggleMais()" style="width:64px;height:64px;border-radius:20px;background:var(--bg3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:34px;transition:all 0.2s">🌽</div>
+    <div id="mais-stato-label" style="font-size:13px;font-weight:700;color:var(--text3)">Non fatto oggi</div>
+  </div>
+
+  <!-- Grafico settimanale -->
+  <div style="padding:0 16px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)">Storico settimanale</div>
+      <button class="btn-sm" onclick="openMaisArchivio()">Archivio</button>
+    </div>
+    <div id="mais-chart"></div>
+  </div>
+</div>
+
+<!-- MAIS ARCHIVIO -->
+<div class="nota-editor" id="mais-archivio-editor">
+  <div class="editor-header" style="justify-content:center;position:relative">
+    <button class="editor-back" onclick="closeMaisArchivio()" style="position:absolute;left:16px">← Indietro</button>
+    <div style="font-family:var(--font);font-size:18px;font-weight:800;color:var(--text);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:6px;text-decoration-thickness:2px">Archivio</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px">
+    <div id="mais-archivio-content"></div>
+  </div>
 </div>
 
 <!-- NOTE MODAL -->
@@ -910,7 +946,7 @@ select option { background: var(--bg3); }
 </nav>
 
 <script>
-let state = { tasks: [], spese: [], palestra: { programmaAttivo: null, programmi: [] }, dieta: { pesi: [], pesoObiettivo: null, diete: [] }, nota: '', universita: { superati: [], mancanti: [] } };
+let state = { tasks: [], spese: [], palestra: { programmaAttivo: null, programmi: [] }, dieta: { pesi: [], pesoObiettivo: null, diete: [] }, nota: '', universita: { superati: [], mancanti: [] }, mais: {} };
 let taskFilter = 'tutti';
 let speseFilter = 'entrata';
 
@@ -918,7 +954,7 @@ function save() { try { localStorage.setItem('dashboard_data', JSON.stringify(st
 function load() {
   try {
     const d = localStorage.getItem('dashboard_data');
-    if (d) { const p = JSON.parse(d); state.tasks = p.tasks || []; state.spese = p.spese || []; state.palestra = p.palestra || { programmaAttivo: null, programmi: [] }; state.dieta = p.dieta || { pesi: [], pesoObiettivo: null, diete: [] }; state.nota = p.nota || ''; state.universita = p.universita || { superati: [], mancanti: [] }; }
+    if (d) { const p = JSON.parse(d); state.tasks = p.tasks || []; state.spese = p.spese || []; state.palestra = p.palestra || { programmaAttivo: null, programmi: [] }; state.dieta = p.dieta || { pesi: [], pesoObiettivo: null, diete: [] }; state.nota = p.nota || ''; state.universita = p.universita || { superati: [], mancanti: [] }; state.mais = p.mais || {}; }
   } catch(e){}
 }
 
@@ -1834,7 +1870,6 @@ function addPeso() {
   const v = parseFloat(document.getElementById('dieta-peso-input').value);
   if (isNaN(v) || v <= 0) return;
   const mesiNomi = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-  const mesiNomiLunghi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
   const now = new Date();
   const giornoInput = parseInt(document.getElementById('dieta-peso-giorno').value);
   const meseInput = parseInt(document.getElementById('dieta-peso-mese').value);
@@ -2004,6 +2039,226 @@ function savePesoObiettivo() {
   if (isNaN(v) || v <= 0) return;
   state.dieta.pesoObiettivo = v;
   save(); closePesoObiettivoModal(); renderDieta();
+}
+
+// MAIS TRACKER
+function maisKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+
+function openMais() {
+  renderMais();
+  document.getElementById('mais-editor').classList.add('open');
+}
+
+function closeMais() {
+  const el = document.getElementById('mais-editor');
+  el.classList.remove('open');
+  el.classList.add('closing');
+  setTimeout(() => el.classList.remove('closing'), 210);
+}
+
+function toggleMais() {
+  const key = maisKey(new Date());
+  state.mais[key] = !state.mais[key];
+  haptic(state.mais[key] ? 'success' : 'light');
+  save(); renderMais();
+}
+
+function renderMais() {
+  const today = new Date();
+  const key = maisKey(today);
+  const fatto = !!state.mais[key];
+
+  const check = document.getElementById('mais-check');
+  const stato = document.getElementById('mais-stato-label');
+  check.style.background = fatto ? 'rgba(244,96,96,0.15)' : 'rgba(62,207,142,0.1)';
+  check.style.borderColor = fatto ? 'var(--red)' : 'var(--green)';
+  stato.textContent = fatto ? '✗ Fatto oggi' : '✓ Non fatto oggi';
+  stato.style.color = fatto ? 'var(--red)' : 'var(--green)';
+
+  // Grafico settimanale - settimana corrente + 7 precedenti
+  const chartEl = document.getElementById('mais-chart');
+  const weeks = [];
+
+  // Trova il lunedì della settimana corrente
+  const getMonday = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0,0,0,0);
+    return d;
+  };
+
+  const thisMonday = getMonday(today);
+
+  for (let w = 0; w < 8; w++) {
+    let count = 0;
+    const days = [];
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(thisMonday);
+      date.setDate(thisMonday.getDate() - w * 7 + d);
+      const k = maisKey(date);
+      const done = !!state.mais[k];
+      const isFuture = date > today;
+      if (done) count++;
+      days.push({ date, done, isToday: maisKey(date) === key, isFuture });
+    }
+    const label = `${days[0].date.getDate()}/${days[0].date.getMonth()+1}`;
+    const isCurrentWeek = w === 0;
+    weeks.push({ label, count, days, isCurrentWeek });
+  }
+
+  chartEl.innerHTML = `
+    ${weeks.map(w => `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="font-size:10px;color:${w.isCurrentWeek?'var(--accent2)':'var(--text3)'};font-weight:${w.isCurrentWeek?'800':'600'};width:36px">${w.isCurrentWeek?'Ora':w.label}</div>
+        <div style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${(w.count/7)*100}%;background:${w.count===7?'var(--red)':w.count>=4?'#f46060aa':'var(--accent)'};border-radius:4px"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);width:20px;text-align:right">${w.count}/7</div>
+      </div>
+      <div style="display:flex;gap:3px;padding-left:44px">
+        ${w.days.map(d => `<div style="flex:1;height:18px;border-radius:3px;background:${d.done?'var(--red)':d.isFuture?'transparent':d.isToday?'rgba(62,207,142,0.2)':'var(--bg3)'};border:1px solid ${d.isToday?'var(--accent)':d.isFuture?'var(--border)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:8px;color:white;">${d.done?'✗':''}</div>`).join('')}
+      </div>
+    </div>`).join('')}
+  `;
+}
+
+function openMaisArchivio() {
+  renderMaisArchivio();
+  const el = document.getElementById('mais-archivio-editor');
+  el.classList.add('open');
+}
+
+function closeMaisArchivio() {
+  const el = document.getElementById('mais-archivio-editor');
+  el.classList.remove('open');
+  el.classList.add('closing');
+  setTimeout(() => el.classList.remove('closing'), 210);
+}
+
+function renderMaisArchivio() {
+  const today = new Date();
+  const getMonday = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0,0,0,0);
+    return d;
+  };
+  const thisMonday = getMonday(today);
+  const mesiNomi = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+
+  // Calcola tutte le settimane per cui abbiamo dati (max 52)
+  const weeks = [];
+  for (let w = 0; w < 52; w++) {
+    let count = 0;
+    const days = [];
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(thisMonday);
+      date.setDate(thisMonday.getDate() - w * 7 + d);
+      const k = maisKey(date);
+      if (state.mais[k]) count++;
+      days.push(date);
+    }
+    const hasDati = days.some(d => maisKey(d) in state.mais);
+    if (!hasDati && w > 0) break; // stop se non ci sono dati
+    const start = days[0];
+    const end = days[6];
+    weeks.push({ w, count, start, end });
+  }
+
+  if (weeks.length === 0) {
+    document.getElementById('mais-archivio-content').innerHTML =
+      '<div class="empty"><div class="empty-icon">🌽</div><div class="empty-text">Nessun dato ancora</div></div>';
+    return;
+  }
+
+  // Statistiche generali
+  const totalWeeks = weeks.length;
+  const avg = totalWeeks ? (weeks.reduce((a,w) => a + w.count, 0) / totalWeeks).toFixed(1) : 0;
+
+  let html = `
+    <div class="stat-card" style="margin-bottom:20px;text-align:center">
+      <div class="stat-label">Media settimanale</div>
+      <div class="stat-value" style="color:var(--accent2);margin-top:4px">${avg}<span style="font-size:14px;color:var(--text3)">/7</span></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Andamento</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px">
+      <canvas id="mais-trend-chart" style="width:100%;height:160px"></canvas>
+    </div>
+  `;
+
+  // Raggruppa per mese
+  document.getElementById('mais-archivio-content').innerHTML = html;
+  const canvas = document.getElementById('mais-trend-chart');
+  if (canvas && weeks.length > 1) {
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.parentElement.clientWidth - 32;
+    const H = 160;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const data = [...weeks].reverse(); // oldest first
+    const pad = { top: 12, right: 12, bottom: 28, left: 28 };
+    const cW = W - pad.left - pad.right;
+    const cH = H - pad.top - pad.bottom;
+    const toX = i => pad.left + (i / (data.length - 1)) * cW;
+    const toY = v => pad.top + (1 - v / 7) * cH;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    [0, 1, 2, 3, 4, 5, 6, 7].forEach(v => {
+      const y = toY(v);
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+      if (v % 2 === 0) {
+        ctx.fillStyle = 'rgba(144,144,168,0.7)';
+        ctx.font = `9px sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.fillText(v, pad.left - 4, y + 3);
+      }
+    });
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+    grad.addColorStop(0, 'rgba(124,111,255,0.35)');
+    grad.addColorStop(1, 'rgba(124,111,255,0)');
+    ctx.beginPath();
+    data.forEach((w, i) => i === 0 ? ctx.moveTo(toX(i), toY(w.count)) : ctx.lineTo(toX(i), toY(w.count)));
+    ctx.lineTo(toX(data.length - 1), pad.top + cH);
+    ctx.lineTo(toX(0), pad.top + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+
+    // Line
+    ctx.strokeStyle = '#7c6fff'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    data.forEach((w, i) => i === 0 ? ctx.moveTo(toX(i), toY(w.count)) : ctx.lineTo(toX(i), toY(w.count)));
+    ctx.stroke();
+
+    // Dots + x labels
+    data.forEach((w, i) => {
+      ctx.beginPath();
+      ctx.arc(toX(i), toY(w.count), 3, 0, Math.PI * 2);
+      ctx.fillStyle = w.count === 7 ? 'var(--green)' : '#a594ff';
+      ctx.fill();
+      const step = Math.max(1, Math.ceil(data.length / 6));
+      if (i % step === 0 || i === data.length - 1) {
+        ctx.fillStyle = 'rgba(144,144,168,0.7)';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${w.start.getDate()}/${w.start.getMonth()+1}`, toX(i), H - pad.bottom + 12);
+      }
+    });
+  }
 }
 
 // NOTE
